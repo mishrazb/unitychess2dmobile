@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 
 
     public ChessController chessController;
+    public PiecePlacement pp;
    public UnityEngine.UI.Button resetBtn;
 
 
@@ -21,6 +22,7 @@ public class GameManager : MonoBehaviour
     }
     public void  ResetPositions(){
         Debug.Log("Reset board positions");
+        pp.PlacePieces();
     }
     private void Awake()
     {

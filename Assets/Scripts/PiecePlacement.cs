@@ -4,103 +4,135 @@ using UnityEngine;
 
 public class PiecePlacement : MonoBehaviour
 {
-    
-    [Header("White")]
+    [Header("White Pieces")]
     public GameObject whitePawn;
     public GameObject whiteRook;
     public GameObject whiteKnight;
-    
     public GameObject whiteBishop;
-    
     public GameObject whiteQueen;
-    
     public GameObject whiteKing;
 
- [Header("Black")]
-public GameObject blackPawn;
-public GameObject blackRook;
-public GameObject blackKnight;
-    
+    [Header("Black Pieces")]
+    public GameObject blackPawn;
+    public GameObject blackRook;
+    public GameObject blackKnight;
     public GameObject blackBishop;
-    
     public GameObject blackQueen;
-    
     public GameObject blackKing;
-    // Start is called before the first frame update
- /*
- [Header("Piece Positions")]
-    public struct PieceInfo 
-{
-    public string pieceName;
-    public string color;
-    public Vector3 position;
-    public PieceController pieceController;
-}
- 
-    List<PieceInfo> pieceInfo = new List<PieceInfo>();  // Stores all piece info
-    */
 
-    public List<Vector3> piecePositions = new List<Vector3>(); 
+    [SerializeField]
+    public static Dictionary<Vector3, PieceController> occupiedPositions = new Dictionary<Vector3, PieceController>();  // To track occupied squares
     
+    [SerializeField]
+    private float positionZ = -1f; // Depth for pieces to be above board
+
     void Start()
     {
-         SetupPieces();
+        PlacePieces();
     }
 
-   #region piece placement
-
-
-// Add all other piece prefabs here...
-
-void SetupPieces()
-{
-    int z = -1;
-    // Set up pawns
-    for (int x = 0; x < 8; x++)
+    #region Piece Placement
+    public void PlacePieces()
     {
-        Vector3 pp = new Vector3(x, 1, z);
-       Instantiate(whitePawn, pp, Quaternion.identity).transform.SetParent(this.transform);
-       //piecePositions.Add(pp);
-        /* PieceInfo p = new PieceInfo();
-        p.color="white";
-        p.pieceName="Pawn";
-        p.position = pp;
-        pieceInfo.Add(p);
-        */
-        Instantiate(blackPawn, new Vector3(x, 6, z), Quaternion.identity).transform.SetParent(this.transform);
-        //piecePositions.Add(new Vector3(x, 6, z));
+        // Place pawns
+        PlacePawns(whitePawn, 1);
+        PlacePawns(blackPawn, 6);
+
+        // Place rooks
+        PlacePiece(whiteRook, 0, 0);
+        PlacePiece(whiteRook, 0, 7);
+        PlacePiece(blackRook, 7, 0);
+        PlacePiece(blackRook, 7, 7);
+
+        // Place knights
+        PlacePiece(whiteKnight, 0, 1);
+        PlacePiece(whiteKnight, 0, 6);
+        PlacePiece(blackKnight, 7, 1);
+        PlacePiece(blackKnight, 7, 6);
+
+        // Place bishops
+        PlacePiece(whiteBishop, 0, 2);
+        PlacePiece(whiteBishop, 0, 5);
+        PlacePiece(blackBishop, 7, 2);
+        PlacePiece(blackBishop, 7, 5);
+
+        // Place queens
+        PlacePiece(whiteQueen, 0, 3);
+        PlacePiece(blackQueen, 7, 3);
+
+        // Place kings
+        PlacePiece(whiteKing, 0, 4);
+        PlacePiece(blackKing, 7, 4);
+    }
+    #endregion
+
+    // Place all pawns in a row
+    private void PlacePawns(GameObject pawnPrefab, int row)
+    {
+        for (int col = 0; col < 8; col++)
+        {
+            PlacePiece(pawnPrefab, row, col);
+        }
     }
 
-    // Set up rooks
-    Instantiate(whiteRook, new Vector3(0, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(whiteRook, new Vector3(7, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-    //setup knights
-    Instantiate(whiteKnight, new Vector3(1, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(whiteKnight, new Vector3(6, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup bishops
-    Instantiate(whiteBishop, new Vector3(2, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(whiteBishop, new Vector3(5, 0,z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup queen
-    Instantiate(whiteQueen, new Vector3(3, 0, z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup king
-    Instantiate(whiteKing, new Vector3(4, 0, z), Quaternion.identity).transform.SetParent(this.transform);
+    // Place a single piece at a specific row and column
+    private void PlacePiece(GameObject piecePrefab, int row, int col)
+    {
+        Vector3 position = new Vector3(col, row, positionZ);
+        
+        // Avoid adding duplicate keys to the dictionary
+        if (occupiedPositions.ContainsKey(position))
+        {
+            Debug.LogWarning($"Attempted to place a piece at an occupied position: {position}");
+            return;
+        }
 
-    
-    Instantiate(blackRook, new Vector3(0, 7, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(blackRook, new Vector3(7, 7, z), Quaternion.identity).transform.SetParent(this.transform);
+        GameObject piece = Instantiate(piecePrefab, position, Quaternion.identity);
+        PieceController pieceController = piece.GetComponent<PieceController>();
 
-     //setup knights
-    Instantiate(blackKnight, new Vector3(1, 7, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(blackKnight, new Vector3(6, 7, z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup bishops
-    Instantiate(blackBishop, new Vector3(2, 7, z), Quaternion.identity).transform.SetParent(this.transform);
-    Instantiate(blackBishop, new Vector3(5, 7,z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup queen
-    Instantiate(blackQueen, new Vector3(3, 7, z), Quaternion.identity).transform.SetParent(this.transform);
-     //setup king
-    Instantiate(blackKing, new Vector3(4, 7, z), Quaternion.identity).transform.SetParent(this.transform);
+        if (pieceController != null)
+        {
+            occupiedPositions.Add(position, pieceController);
+        }
+        else
+        {
+            Debug.LogError($"Piece at {position} is missing a PieceController component.");
+        }
+    }
 
-}
-#endregion
+    // Check if a position is occupied
+    public bool IsPositionOccupied(Vector3 position)
+    {
+        return occupiedPositions.ContainsKey(position);
+    }
 
+    // Get the piece at a specific position
+    public PieceController GetPieceAtPosition(Vector3 position)
+    {
+        if (occupiedPositions.TryGetValue(position, out PieceController piece))
+        {
+            return piece;
+        }
+        return null;
+    }
+
+    // Move a piece to a new position
+    public void MovePiece(PieceController piece, Vector3 newPosition)
+    {
+        if (IsPositionOccupied(newPosition))
+        {
+            // Handle piece capture logic
+            Debug.Log($"Position {newPosition} is occupied. Capture logic required.");
+            return;
+        }
+
+        // Remove piece from old position
+        occupiedPositions.Remove(piece.transform.position);
+
+        // Move the piece
+        piece.transform.position = newPosition;
+
+        // Update the dictionary with the new position
+        occupiedPositions.Add(newPosition, piece);
+    }
 }

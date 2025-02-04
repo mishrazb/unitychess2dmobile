@@ -6,12 +6,14 @@ public class ChessController : MonoBehaviour
 {
     public GameObject whiteSquarePrefab;  // Reference to white square prefab
     public GameObject blackSquarePrefab;  // Reference to black square prefab
+    public PiecePlacement piecePlacement; // Reference to PiecePlacement for handling piece placement
+
     private GameObject[,] boardSquares = new GameObject[8, 8];  // 8x8 grid
     
     void Start()
     {
         CreateBoard();
-       
+        piecePlacement.PlacePieces();  // Delegate piece placement to PiecePlacement
     }
 
     void CreateBoard()
@@ -36,6 +38,5 @@ public class ChessController : MonoBehaviour
         }
     }
 
-
-
+    // You can add other game logic here such as moves, checks, etc.
 }
