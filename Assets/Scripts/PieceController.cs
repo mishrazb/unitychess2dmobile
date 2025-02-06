@@ -26,32 +26,39 @@ public class PieceController : MonoBehaviour
     }
 }
     private void OnMouseDown()
+{
+    // Ensure it's the correct player's turn
+    if (!GameManager.Instance.IsCurrentPlayerTurn(isWhite))
     {
-        if (currentlySelectedPiece != null){
-            currentlySelectedPiece.Deselect();
-        }
-          // if(goHighlight!=null){
-           // Destroy(goHighlight);
-           //} 
-
-        isSelected = !isSelected;
-        currentlySelectedPiece = isSelected ? this : null;
-
-        if (isSelected)
-        {
-            goHighlight = Instantiate(highlightSelectedPiece, transform.position, Quaternion.identity);
-            goHighlight.transform.SetParent(transform);
-
-            
-            HighlightValidMoves();
-        }
-        else
-        {
-           // Destroy(goHighlight);
-            Deselect();
-        }
+        Debug.Log("Not your turn!");
+        return;
     }
 
+    // Deselect the previously selected piece
+    if (currentlySelectedPiece != null && currentlySelectedPiece != this)
+    {
+        currentlySelectedPiece.Deselect();
+    }
+
+    // Select the new piece if it's not already selected
+    isSelected = !isSelected;
+    currentlySelectedPiece = isSelected ? this : null;
+
+    if (isSelected)
+    {
+        // Highlight only the selected piece
+        if (goHighlight != null) Destroy(goHighlight);
+        goHighlight = Instantiate(highlightSelectedPiece, transform.position, Quaternion.identity);
+        goHighlight.transform.SetParent(transform);
+        
+        // Highlight valid moves
+        HighlightValidMoves();
+    }
+    else
+    {
+        Deselect();
+    }
+}
     public void Deselect()
     {
         //foreach (GameObject indicator in validMoveIndicators){
