@@ -1,8 +1,17 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PiecePlacement : MonoBehaviour
+[Serializable]
+public class PositionPiecePair
+{
+    public Vector3 position;
+    public PieceController piece;
+
+}
+
+public  class PiecePlacement : MonoBehaviour
 {
     [Header("White Pieces")]
     public GameObject whitePawn;
@@ -19,16 +28,25 @@ public class PiecePlacement : MonoBehaviour
     public GameObject blackBishop;
     public GameObject blackQueen;
     public GameObject blackKing;
-
-    [SerializeField]
-    public static Dictionary<Vector3, PieceController> occupiedPositions = new Dictionary<Vector3, PieceController>();  // To track occupied squares
-    
+   public static PiecePlacement piecePlacement = null;
     [SerializeField]
     private float positionZ = -1f; // Depth for pieces to be above board
 
-    void Start()
+    // Serialized List for Inspector debugging
+    [SerializeField]
+    public List<PositionPiecePair> occupiedPositionsList = new List<PositionPiecePair>();
+
+    // Actual Dictionary (not directly visible in Inspector)
+    public Dictionary<Vector3, PieceController> occupiedPositions = new Dictionary<Vector3, PieceController>();
+
+ public static PiecePlacement Instance { get; private set; }
+
+    private void Awake()
     {
-        PlacePieces();
+         if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+        
+        SyncListToDictionary();
     }
 
     #region Piece Placement
@@ -66,7 +84,6 @@ public class PiecePlacement : MonoBehaviour
     }
     #endregion
 
-    // Place all pawns in a row
     private void PlacePawns(GameObject pawnPrefab, int row)
     {
         for (int col = 0; col < 8; col++)
@@ -75,12 +92,10 @@ public class PiecePlacement : MonoBehaviour
         }
     }
 
-    // Place a single piece at a specific row and column
     private void PlacePiece(GameObject piecePrefab, int row, int col)
     {
         Vector3 position = new Vector3(col, row, positionZ);
-        
-        // Avoid adding duplicate keys to the dictionary
+
         if (occupiedPositions.ContainsKey(position))
         {
             Debug.LogWarning($"Attempted to place a piece at an occupied position: {position}");
@@ -88,11 +103,16 @@ public class PiecePlacement : MonoBehaviour
         }
 
         GameObject piece = Instantiate(piecePrefab, position, Quaternion.identity);
+        
+       
+        piece.transform.SetParent(transform);
         PieceController pieceController = piece.GetComponent<PieceController>();
 
         if (pieceController != null)
         {
+
             occupiedPositions.Add(position, pieceController);
+            occupiedPositionsList.Add(new PositionPiecePair { position = position, piece = pieceController });
         }
         else
         {
@@ -100,13 +120,11 @@ public class PiecePlacement : MonoBehaviour
         }
     }
 
-    // Check if a position is occupied
     public bool IsPositionOccupied(Vector3 position)
     {
         return occupiedPositions.ContainsKey(position);
     }
 
-    // Get the piece at a specific position
     public PieceController GetPieceAtPosition(Vector3 position)
     {
         if (occupiedPositions.TryGetValue(position, out PieceController piece))
@@ -116,23 +134,38 @@ public class PiecePlacement : MonoBehaviour
         return null;
     }
 
-    // Move a piece to a new position
     public void MovePiece(PieceController piece, Vector3 newPosition)
     {
         if (IsPositionOccupied(newPosition))
         {
-            // Handle piece capture logic
             Debug.Log($"Position {newPosition} is occupied. Capture logic required.");
             return;
         }
 
-        // Remove piece from old position
         occupiedPositions.Remove(piece.transform.position);
-
-        // Move the piece
         piece.transform.position = newPosition;
-
-        // Update the dictionary with the new position
         occupiedPositions.Add(newPosition, piece);
+
+        UpdateOccupiedPositions(); // Sync the list after moving
+    }
+
+    // Syncs the Dictionary into the List for debugging
+    private void UpdateOccupiedPositions()
+    {
+        occupiedPositionsList.Clear();
+        foreach (var kvp in occupiedPositions)
+        {
+            occupiedPositionsList.Add(new PositionPiecePair { position = kvp.Key, piece = kvp.Value });
+        }
+    }
+
+    // Syncs the List into the Dictionary on Awake
+    private void SyncListToDictionary()
+    {
+        occupiedPositions.Clear();
+        foreach (var pair in occupiedPositionsList)
+        {
+            occupiedPositions[pair.position] = pair.piece;
+        }
     }
 }

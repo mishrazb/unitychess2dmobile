@@ -364,7 +364,8 @@ MonoBehaviour:
   blackBishop: {fileID: 138526475489352158, guid: 7ecabf2fb704922448c79a6c9af1cdec, type: 3}
   blackQueen: {fileID: 3515128362262936837, guid: 673171e4a5666604da2cce8454819825, type: 3}
   blackKing: {fileID: 4693576580125088435, guid: ce586da612187ac4aaff53d6bd5608ed, type: 3}
-  piecePositions: []
+  positionZ: -1
+  occupiedPositionsList: []
 --- !u!4 &468286564
 Transform:
   m_ObjectHideFlags: 0
@@ -414,7 +415,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -1.37, y: -180.56}
+  m_AnchoredPosition: {x: -1.37, y: -180.56006}
   m_SizeDelta: {x: 479.97, y: 90.43}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &889691942
@@ -817,6 +818,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whiteSquarePrefab: {fileID: 4413665807650615575, guid: 30b98eb11e87c8a4d98d7cbede52eb5d, type: 3}
   blackSquarePrefab: {fileID: 3996564959113235648, guid: d3c0ce884ce53b54b82e26a0a131865a, type: 3}
+  piecePlacement: {fileID: 468286563}
+  tilePrefab: {fileID: 5762455892759881398, guid: e5326f5b3738fd74cad37f0da87e75c5, type: 3}
+  blackTileColor: {r: 0.18867922, g: 0, b: 0, a: 1}
+  whiteTileColor: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
 --- !u!1 &1412039928
 GameObject:
   m_ObjectHideFlags: 0
@@ -1110,6 +1115,7 @@ MonoBehaviour:
   isWhiteTurn: 1
   turnText: {fileID: 889691942}
   chessController: {fileID: 1113360545}
+  pp: {fileID: 468286563}
   resetBtn: {fileID: 1694895259}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
