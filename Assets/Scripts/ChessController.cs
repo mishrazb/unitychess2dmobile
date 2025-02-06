@@ -7,7 +7,9 @@ public class ChessController : MonoBehaviour
     public GameObject whiteSquarePrefab;  // Reference to white square prefab
     public GameObject blackSquarePrefab;  // Reference to black square prefab
     public PiecePlacement piecePlacement; // Reference to PiecePlacement for handling piece placement
-
+ public GameObject tilePrefab;
+ public Color blackTileColor;
+ public Color whiteTileColor;
     private GameObject[,] boardSquares = new GameObject[8, 8];  // 8x8 grid
     
     void Start()
@@ -25,11 +27,13 @@ public class ChessController : MonoBehaviour
                 GameObject square;
                 if ((x + y) % 2 == 0)
                 {
-                    square = Instantiate(whiteSquarePrefab);
+                    square = Instantiate(tilePrefab);
+                    square.GetComponent<SpriteRenderer>().color=whiteTileColor;
                 }
                 else
                 {
-                    square = Instantiate(blackSquarePrefab);
+                    square = Instantiate(tilePrefab);
+                    square.GetComponent<SpriteRenderer>().color=blackTileColor;
                 }
                 square.transform.position = new Vector3(x, y, 0);
                 square.transform.SetParent(this.transform);

@@ -12,45 +12,70 @@ public class PieceController : MonoBehaviour
     [Header("Selection and Validation")]
     public GameObject highlightSelectedPiece;
     public GameObject highlightValidMoves;
+    private GameObject goHighlight;
     public static PieceController currentlySelectedPiece = null;
     public List<GameObject> validMoveIndicators = new List<GameObject>();
     public bool isSelected = false;
-
+    public PiecePlacement piecePlacement;
+    private void Start()
+{
+    piecePlacement = FindObjectOfType<PiecePlacement>();
+    if (piecePlacement == null)
+    {
+        Debug.LogError("PiecePlacement not found! Ensure there is a PiecePlacement object in the scene.");
+    }
+}
     private void OnMouseDown()
     {
-        if (currentlySelectedPiece != null)
+        if (currentlySelectedPiece != null){
             currentlySelectedPiece.Deselect();
+        }
+          // if(goHighlight!=null){
+           // Destroy(goHighlight);
+           //} 
 
         isSelected = !isSelected;
         currentlySelectedPiece = isSelected ? this : null;
 
         if (isSelected)
         {
-            Instantiate(highlightSelectedPiece, transform.position, Quaternion.identity);
+            goHighlight = Instantiate(highlightSelectedPiece, transform.position, Quaternion.identity);
+            goHighlight.transform.SetParent(transform);
+
+            
             HighlightValidMoves();
         }
         else
         {
+           // Destroy(goHighlight);
             Deselect();
         }
     }
 
     public void Deselect()
     {
-        foreach (GameObject indicator in validMoveIndicators)
-            Destroy(indicator);
+        //foreach (GameObject indicator in validMoveIndicators){
+         //   Destroy(indicator);
+        //}
+        GameObject[] outlines = GameObject.FindGameObjectsWithTag("ValidMove");
+             foreach (GameObject outline in outlines){
+            Destroy(outline);
+        }
         validMoveIndicators.Clear();
     }
 
     private void HighlightValidMoves()
     {
         Vector3[] validMoves = GetValidMoves();
+       
         validMoveIndicators.Clear();
         foreach (Vector3 move in validMoves)
         {
+            Debug.Log(move);
             if (IsValidMove(move))
             {
                 GameObject validMove = Instantiate(highlightValidMoves, move, Quaternion.identity);
+                validMove.transform.SetParent(transform);
                 validMove.tag = "ValidMove";
                 validMoveIndicators.Add(validMove);
             }
@@ -59,8 +84,13 @@ public class PieceController : MonoBehaviour
 
     public bool IsValidMove(Vector3 move)
     {
+        return IsValidMove(move, piecePlacement);
+    }
+
+    public bool IsValidMove(Vector3 move, PiecePlacement piecePlacement)
+    {
         if (!IsWithinBounds(move)) return false;
-        if (PiecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
+        if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
             return piece.isWhite != this.isWhite;
         return true;
     }
@@ -69,10 +99,9 @@ public class PieceController : MonoBehaviour
     {
         return position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8;
     }
-
-    public Vector3[] GetValidMoves()
+    public Vector3[] GetValidMoves( )
     {
-        return selectedPieceType switch
+        return selectedPieceType switch 
         {
             pieceType.Pawn => GetPawnMoves(),
             pieceType.Rook => GetRookMoves(),
@@ -99,7 +128,7 @@ public class PieceController : MonoBehaviour
             Vector3 move = transform.position + direction;
             while (IsWithinBounds(move))
             {
-                if (PiecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
+                if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
                 {
                     if (piece.isWhite != isWhite) moves.Add(move);
                     break;
@@ -117,19 +146,19 @@ public class PieceController : MonoBehaviour
         int direction = isWhite ? 1 : -1;
         Vector3 forwardMove = transform.position + new Vector3(0, direction, 0);
 
-        if (!PiecePlacement.occupiedPositions.ContainsKey(forwardMove))
+        if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
         {
             moves.Add(forwardMove);
             Vector3 doubleForwardMove = transform.position + new Vector3(0, direction * 2, 0);
-            if ((transform.position.y == (isWhite ? 1 : 6)) && !PiecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
+            if ((transform.position.y == (isWhite ? 1 : 6)) && !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
                 moves.Add(doubleForwardMove);
         }
         
         Vector3 leftDiagonal = transform.position + new Vector3(-1, direction, 0);
         Vector3 rightDiagonal = transform.position + new Vector3(1, direction, 0);
-        if (PiecePlacement.occupiedPositions.TryGetValue(leftDiagonal, out PieceController leftPiece) && leftPiece.isWhite != isWhite)
+        if (piecePlacement.occupiedPositions.TryGetValue(leftDiagonal, out PieceController leftPiece) && leftPiece.isWhite != isWhite)
             moves.Add(leftDiagonal);
-        if (PiecePlacement.occupiedPositions.TryGetValue(rightDiagonal, out PieceController rightPiece) && rightPiece.isWhite != isWhite)
+        if (piecePlacement.occupiedPositions.TryGetValue(rightDiagonal, out PieceController rightPiece) && rightPiece.isWhite != isWhite)
             moves.Add(rightDiagonal);
         
         return moves.ToArray();
@@ -145,7 +174,7 @@ public class PieceController : MonoBehaviour
             Vector3 move = transform.position + direction;
             while (IsWithinBounds(move))
             {
-                if (PiecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
+                if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
                 {
                     if (piece.isWhite != isWhite) moves.Add(move);
                     break;
