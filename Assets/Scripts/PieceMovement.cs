@@ -92,7 +92,7 @@ public void TryMovePiece(Vector3 target)
     }
 
     // 🔥 Step 2: En Passant Validation (Even if target is empty)
-    if (isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+    if (!isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
     {
         Debug.Log("EntPassnant Identified");
 
