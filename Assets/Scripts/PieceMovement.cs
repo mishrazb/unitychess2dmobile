@@ -63,7 +63,7 @@ void Update()
 }
 public void TryMovePiece(Vector3 target)
 {
-   if (PieceController.currentlySelectedPiece == null)
+    if (PieceController.currentlySelectedPiece == null)
         return;
 
     PieceController selectedPiece = PieceController.currentlySelectedPiece;
@@ -76,7 +76,6 @@ public void TryMovePiece(Vector3 target)
 
     // 🔥 Step 1: Validate Move - Special Case for En Passant
     Vector3[] validMoves = selectedPiece.GetValidMoves();
-  
     bool isValidMove = false;
     bool isEnPassant = false;
 
@@ -92,9 +91,9 @@ public void TryMovePiece(Vector3 target)
     }
 
     // 🔥 Step 2: En Passant Validation (Even if target is empty)
-    if (!isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+    if (isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
     {
-        Debug.Log("EntPassnant Identified");
+        Debug.Log("Checking for En Passant...");
 
         if (GameManager.Instance.lastMovedPiece != null &&
             GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
@@ -102,12 +101,12 @@ public void TryMovePiece(Vector3 target)
             Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
             Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
 
-            // Check if last move was a double-step pawn move
+            // 🔥 Check if last move was a double-step pawn move
             if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
                 lastMoveEnd.y == selectedPiece.transform.position.y &&
-                Mathf.Abs(lastMoveEnd.x - selectedPiece.transform.position.x) == 1)
+                (selectedPiece.transform.position.x == lastMoveEnd.x - 1 || selectedPiece.transform.position.x == lastMoveEnd.x + 1)) // ✅ FIXED!
             {
-               
+                // 🔥 Ensure the target is the correct diagonal square
                 if (target == new Vector3(lastMoveEnd.x, selectedPiece.transform.position.y + (selectedPiece.isWhite ? 1 : -1), -1))
                 {
                     isValidMove = true;
@@ -126,7 +125,7 @@ public void TryMovePiece(Vector3 target)
     // 🔥 Step 3: Capture Logic (Including En Passant)
     if (isEnPassant)
     {
-        Vector3 capturedPawnPosition = new Vector3(target.x, selectedPiece.transform.position.y, -1);
+        Vector3 capturedPawnPosition = new Vector3(target.x, target.y - (selectedPiece.isWhite ? 1 : -1), -1); // ✅ FIXED!
         if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
         {
             if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)

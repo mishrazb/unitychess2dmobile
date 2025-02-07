@@ -183,18 +183,26 @@ public class PieceController : MonoBehaviour
         moves.Add(rightDiagonal);
     }
 
-    // 🔥 En Passant Check
+   // 🔥 En Passant Check
     if (GameManager.Instance.lastMovedPiece != null && GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
     {
         Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
         Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
 
-        // 🔥 If last move was a pawn's double-step move, check for en passant capture
-        if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
-            lastMoveEnd.y == transform.position.y &&
-            Mathf.Abs(lastMoveEnd.x - transform.position.x) == 1)
+        // 🔥 Ensure last move was a double-step move and on the same row
+        if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 && lastMoveEnd.y == transform.position.y)
         {
-            moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move behind the pawn
+            // 🔥 Check for left-side en passant
+            if (transform.position.x == lastMoveEnd.x + 1)
+            {
+                moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move diagonally forward-left
+            }
+
+            // 🔥 Check for right-side en passant
+            if (transform.position.x == lastMoveEnd.x - 1)
+            {
+                moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move diagonally forward-right
+            }
         }
     }
 
