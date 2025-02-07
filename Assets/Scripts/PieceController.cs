@@ -29,6 +29,7 @@ public class PieceController : MonoBehaviour
 {
   
     // 🔥 Otherwise, this is just a selection attempt
+    //this is called 66 times potential performance hazard. Perhaps failt it directly on first call from game manager
     if (!GameManager.Instance.IsCurrentPlayerTurn(isWhite))
     {
         Debug.Log("Not your turn!");
@@ -77,7 +78,7 @@ public class PieceController : MonoBehaviour
         validMoveIndicators.Clear();
         foreach (Vector3 move in validMoves)
         {
-            Debug.Log(move);
+         
             if (IsValidMove(move))
             {
                 GameObject validMove = Instantiate(highlightValidMoves, move, Quaternion.identity);
@@ -147,28 +148,58 @@ public class PieceController : MonoBehaviour
     }
 
     private Vector3[] GetPawnMoves()
-    {
-        List<Vector3> moves = new List<Vector3>();
-        int direction = isWhite ? 1 : -1;
-        Vector3 forwardMove = transform.position + new Vector3(0, direction, 0);
+{
+    List<Vector3> moves = new List<Vector3>();
+    int direction = isWhite ? 1 : -1;
+    Vector3 forwardMove = transform.position + new Vector3(0, direction, 0);
 
-        if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
+    // 🔥 Standard forward move
+    if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
+    {
+        moves.Add(forwardMove);
+
+        // 🔥 First double-step move
+        Vector3 doubleForwardMove = transform.position + new Vector3(0, direction * 2, 0);
+        if ((transform.position.y == (isWhite ? 1 : 6)) &&
+            !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
         {
-            moves.Add(forwardMove);
-            Vector3 doubleForwardMove = transform.position + new Vector3(0, direction * 2, 0);
-            if ((transform.position.y == (isWhite ? 1 : 6)) && !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
-                moves.Add(doubleForwardMove);
+            moves.Add(doubleForwardMove);
         }
-        
-        Vector3 leftDiagonal = transform.position + new Vector3(-1, direction, 0);
-        Vector3 rightDiagonal = transform.position + new Vector3(1, direction, 0);
-        if (piecePlacement.occupiedPositions.TryGetValue(leftDiagonal, out PieceController leftPiece) && leftPiece.isWhite != isWhite)
-            moves.Add(leftDiagonal);
-        if (piecePlacement.occupiedPositions.TryGetValue(rightDiagonal, out PieceController rightPiece) && rightPiece.isWhite != isWhite)
-            moves.Add(rightDiagonal);
-        
-        return moves.ToArray();
     }
+
+    // 🔥 Normal diagonal captures
+    Vector3 leftDiagonal = transform.position + new Vector3(-1, direction, 0);
+    Vector3 rightDiagonal = transform.position + new Vector3(1, direction, 0);
+    
+    if (piecePlacement.occupiedPositions.TryGetValue(leftDiagonal, out PieceController leftPiece) &&
+        leftPiece.isWhite != isWhite)
+    {
+        moves.Add(leftDiagonal);
+    }
+    
+    if (piecePlacement.occupiedPositions.TryGetValue(rightDiagonal, out PieceController rightPiece) &&
+        rightPiece.isWhite != isWhite)
+    {
+        moves.Add(rightDiagonal);
+    }
+
+    // 🔥 En Passant Check
+    if (GameManager.Instance.lastMovedPiece != null && GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
+    {
+        Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
+        Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
+
+        // 🔥 If last move was a pawn's double-step move, check for en passant capture
+        if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
+            lastMoveEnd.y == transform.position.y &&
+            Mathf.Abs(lastMoveEnd.x - transform.position.x) == 1)
+        {
+            moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move behind the pawn
+        }
+    }
+
+    return moves.ToArray();
+}
 
     private Vector3[] GetBishopMoves()
     {
