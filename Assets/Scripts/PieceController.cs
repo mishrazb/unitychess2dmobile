@@ -25,33 +25,32 @@ public class PieceController : MonoBehaviour
         Debug.LogError("PiecePlacement not found! Ensure there is a PiecePlacement object in the scene.");
     }
 }
-    private void OnMouseDown()
+  public void OnMouseDown()
 {
-    // Ensure it's the correct player's turn
+  
+    // 🔥 Otherwise, this is just a selection attempt
     if (!GameManager.Instance.IsCurrentPlayerTurn(isWhite))
     {
         Debug.Log("Not your turn!");
         return;
     }
 
-    // Deselect the previously selected piece
+    // 🔥 Deselect previous piece if a different piece is selected
     if (currentlySelectedPiece != null && currentlySelectedPiece != this)
     {
         currentlySelectedPiece.Deselect();
     }
 
-    // Select the new piece if it's not already selected
+    // 🔥 Toggle selection
     isSelected = !isSelected;
     currentlySelectedPiece = isSelected ? this : null;
 
     if (isSelected)
     {
-        // Highlight only the selected piece
         if (goHighlight != null) Destroy(goHighlight);
         goHighlight = Instantiate(highlightSelectedPiece, transform.position, Quaternion.identity);
         goHighlight.transform.SetParent(transform);
-        
-        // Highlight valid moves
+
         HighlightValidMoves();
     }
     else
