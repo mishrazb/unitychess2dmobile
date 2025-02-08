@@ -3,70 +3,16 @@ using UnityEngine;
 
 public class PieceMovement : MonoBehaviour
 {
-  //  [SerializeField]
-   // private PieceController pieceController;  // Reference to the PieceController
-   
-    // Reference to the selected piece
-    private void Start()
-    {
-       // if(pieceController==null)
-       // pieceController = FindObjectOfType<PieceController>();  // Alternatively, set it via inspector
-    }
-
- /*   void OnMouseDown()
-    {
-        // Ensure there's a selected piece
-        if (PieceController.currentlySelectedPiece != null)
-        {
-            Vector3 targetPosition = transform.position;
-            //ensure that the target position z and selected piece z are same otherwise validation will fail and pieces will not move.
-            targetPosition.z = PieceController.currentlySelectedPiece.transform.position.z;
-            // Check if the target position is a valid move for the currently selected piece
-            if (PieceController.currentlySelectedPiece.IsValidMove(targetPosition))
-            {
-                // Call TryMovePiece() to move the piece
-               TryMovePiece(targetPosition);
-           }
-            else
-            {
-                // Optionally handle invalid move (e.g., show feedback or sound)
-               Debug.Log("Invalid move!");
-            }
-        }else{
-            Debug.Log("Piece not selected");
-        }
-    }
-*/
-void Update()
-{
-    if (Input.GetMouseButtonDown(0))
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit))
-        {
-            PieceController clickedPiece = hit.collider.GetComponent<PieceController>();
-            PieceMovement clickedTile = hit.collider.GetComponent<PieceMovement>();
-
-            if (clickedPiece != null)
-            {
-                Debug.Log("Clicked Piece");
-                clickedPiece.OnMouseDown(); // Let PieceController handle selection/capture
-            }
-            else if (clickedTile != null)
-            {
-                clickedTile.OnMouseDown(); // Let PieceMovement handle movement
-            }
-        }
-    }
-}
-void OnMouseDown()
+    /// <summary>
+    /// Called when a board tile is clicked.
+    /// Converts the target position into a standardized board coordinate.
+    /// </summary>
+    public void OnTargetTileClicked(Vector3 targetPosition)
     {
         if (PieceController.currentlySelectedPiece != null)
         {
-            Vector3 targetPosition = transform.position;
-            targetPosition.z = PieceController.currentlySelectedPiece.transform.position.z;
+            // Standardize the target board position.
+            targetPosition = ChessUtilities.BoardPosition(targetPosition);
 
             if (PieceController.currentlySelectedPiece.IsValidMove(targetPosition))
             {
@@ -74,7 +20,7 @@ void OnMouseDown()
             }
             else
             {
-                Debug.Log("Invalid move!");
+                Debug.Log("PieceMovement: Invalid move!");
             }
         }
         else
@@ -83,7 +29,11 @@ void OnMouseDown()
         }
     }
 
-  public void TryMovePiece(Vector3 target)
+    /// <summary>
+    /// Attempts to move the currently selected piece to the given target.
+    /// Records the starting position (for en passant) before moving.
+    /// </summary>
+    public void TryMovePiece(Vector3 target)
     {
         if (PieceController.currentlySelectedPiece == null)
             return;
@@ -96,83 +46,130 @@ void OnMouseDown()
             return;
         }
 
-        Vector3[] validMoves = selectedPiece.GetValidMoves();
-        bool isValidMove = validMoves.Any(move => Vector3.Distance(move, target) < 0.1f);
-        bool isEnPassant = false;
+        // Save the starting (pre-move) board position.
+        Vector3 startingPos = ChessUtilities.BoardPosition(selectedPiece.transform.position);
 
-        if (isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+        Debug.Log("Is valid move target " + target + " for " + selectedPiece.gameObject.name);
+        if (!IsValidMove(target, selectedPiece))
         {
-            if (GameManager.Instance.lastMovedPiece != null &&
-                GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
-            {
-                Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
-                Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
-
-                if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
-                    lastMoveEnd.y == selectedPiece.transform.position.y)
-                {
-                    bool isLeftEnPassant = (selectedPiece.transform.position.x == lastMoveEnd.x + 1);
-                    bool isRightEnPassant = (selectedPiece.transform.position.x == lastMoveEnd.x - 1);
-
-                    if ((isLeftEnPassant && lastMoveEnd.x > 0) || (isRightEnPassant && lastMoveEnd.x < 7))
-                    {
-                        Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, selectedPiece.transform.position.y + (selectedPiece.isWhite ? 1 : -1), -1);
-                        if (target == enPassantTarget)
-                        {
-                            isValidMove = true;
-                            isEnPassant = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!isValidMove)
-        {
-            Debug.Log("Invalid Move Attempt! The move is not in the valid moves list.");
+            Debug.Log("Invalid move attempt.");
             return;
         }
 
-        if (isEnPassant)
-        {
-            Vector3 capturedPawnPosition = new Vector3(target.x, target.y - (selectedPiece.isWhite ? 1 : -1), 0);
-            if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
-            {
-                if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
-                {
-                    Debug.Log($"Captured via En Passant: {capturedPawn.name}");
-                    selectedPiece.piecePlacement.occupiedPositions.Remove(capturedPawnPosition);
-                    Destroy(capturedPawn.gameObject);
-                }
-            }
-        }
-        else if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(target, out PieceController targetPiece))
-        {
-            if (targetPiece.isWhite != selectedPiece.isWhite)
-            {
-                Debug.Log("Captured: " + targetPiece.name);
-                Destroy(targetPiece.gameObject);
-                selectedPiece.piecePlacement.occupiedPositions.Remove(target);
-            }
-            else
-            {
-                Debug.Log("Cannot capture your own piece!");
-                return;
-            }
-        }
+        // Process en passant before moving the piece.
+        bool isEnPassant = HandleEnPassant(target, selectedPiece);
+        bool isCapture = HandleCapture(target, selectedPiece);
 
-        Vector3 previousPosition = selectedPiece.transform.position;
-        selectedPiece.piecePlacement.occupiedPositions.Remove(previousPosition);
-        selectedPiece.piecePlacement.occupiedPositions[target] = selectedPiece;
+        // Move the piece.
+        MovePiece(target, selectedPiece);
 
-        target.z = -1;
-        selectedPiece.transform.position = target;
-
+        // Store last move details for future en passant checks:
+        // startingPos is the pre–move position, and the new position is stored in the piece.
         GameManager.Instance.lastMovedPiece = selectedPiece;
-        GameManager.Instance.lastMoveStartPos = previousPosition;
+        GameManager.Instance.lastMoveStartPos = startingPos;
 
         selectedPiece.isSelected = false;
         selectedPiece.Deselect();
         GameManager.Instance.EndTurn();
     }
+
+    /// <summary>
+    /// Validates the target move against the piece’s list of valid moves.
+    /// </summary>
+    private bool IsValidMove(Vector3 target, PieceController piece)
+    {
+        // Ensure the target is in board coordinates.
+        target = ChessUtilities.BoardPosition(target);
+        Vector3[] validMoves = piece.GetValidMoves();
+        return validMoves.Any(move => Vector3.Distance(move, target) < 0.1f);
+    }
+
+    /// <summary>
+    /// Checks if the move results in a capture.
+    /// If so, removes the captured piece from the board.
+    /// </summary>
+    private bool HandleCapture(Vector3 target, PieceController piece)
+    {
+        target = ChessUtilities.BoardPosition(target);
+        if (piece.piecePlacement.occupiedPositions.TryGetValue(target, out PieceController targetPiece))
+        {
+            if (targetPiece.isWhite != piece.isWhite)
+            {
+                Debug.Log("Captured: " + targetPiece.name);
+                piece.piecePlacement.occupiedPositions.Remove(target);
+                Destroy(targetPiece.gameObject);
+                return true;
+            }
+            else
+            {
+                Debug.Log("Cannot capture your own piece!");
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Processes an en passant move if the conditions are met.
+    /// Uses the stored last move data to determine if an adjacent enemy pawn moved two squares.
+    /// </summary>
+    private bool HandleEnPassant(Vector3 target, PieceController piece)
+    {
+        target = ChessUtilities.BoardPosition(target);
+        if (piece.selectedPieceType != PieceController.pieceType.Pawn)
+            return false;
+
+        if (GameManager.Instance.lastMovedPiece != null &&
+            GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+        {
+            Vector3 lastMoveStart = ChessUtilities.BoardPosition(GameManager.Instance.lastMoveStartPos);
+            Vector3 lastMoveEnd = ChessUtilities.BoardPosition(GameManager.Instance.lastMovedPiece.transform.position);
+            Vector3 currentPos = ChessUtilities.BoardPosition(piece.transform.position);
+
+            // Validate that the enemy pawn moved two squares, is on the same rank as our pawn,
+            // and is horizontally adjacent.
+            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
+                lastMoveEnd.y == currentPos.y &&
+                Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
+            {
+                // The enemy pawn’s position (which should be removed via en passant)
+                Vector3 capturedPawnPosition = new Vector3(lastMoveEnd.x, lastMoveEnd.y, -1);
+
+                if (piece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
+                {
+                    if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
+                    {
+                        Debug.Log($"Captured via En Passant: {capturedPawn.name} at {capturedPawnPosition}");
+                        piece.piecePlacement.occupiedPositions.Remove(capturedPawnPosition);
+                        Destroy(capturedPawn.gameObject);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Moves the piece to the target position.
+    /// Updates the piece’s position in the occupancy dictionary.
+    /// </summary>
+    private void MovePiece(Vector3 target, PieceController piece)
+    {
+        // Remove the piece from its current board position.
+        Vector3 currentPos = ChessUtilities.BoardPosition(piece.transform.position);
+        piece.piecePlacement.occupiedPositions.Remove(currentPos);
+
+        // Standardize the target position and update the occupancy dictionary.
+        target = ChessUtilities.BoardPosition(target);
+        piece.piecePlacement.occupiedPositions[target] = piece;
+
+        // Move the piece’s transform to the new target.
+        piece.transform.position = target;
+    }
+
+    /// <summary>
+    /// Helper method to standardize board positions.
+    /// In this implementation, board positions are on the X-Y plane with a fixed z of -1.
+    /// </summary>
+ 
 }

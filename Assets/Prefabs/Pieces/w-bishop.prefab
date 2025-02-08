@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 2481625155869517045}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isWhite: 1
   selectedPieceType: 3
-  highlightSelectedPiece: {fileID: 1186636311760289427, guid: f74a1c1c20568f647a1a3d6d9bb27ccf, type: 3}
+  highlightSelectedPiece: {fileID: 5674089397121736908, guid: 2621270614ef70d4884367d1d0bc7eaf, type: 3}
   highlightValidMoves: {fileID: 8959170116430859158, guid: 895496618117b7445808c9d8ac988d38, type: 3}
   validMoveIndicators: []
   isSelected: 0
