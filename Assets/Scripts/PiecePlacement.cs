@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PiecePlacement : MonoBehaviour
@@ -24,11 +25,22 @@ public class PiecePlacement : MonoBehaviour
     private float positionZ = -1f; // Depth for pieces to be above board
 
     public static PiecePlacement Instance { get; private set; }
+  //  public static ChessController chessController;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+       
+      
+    }
+    /// <summary>
+    /// Start is called on the frame when a script is enabled just before
+    /// any of the Update methods is called the first time.
+    /// </summary>
+    void Start()
+    {
+          PlacePieces();
     }
 
     #region Piece Placement
@@ -38,7 +50,7 @@ public class PiecePlacement : MonoBehaviour
         PlacePawns(whitePawn, 1);
         PlacePawns(blackPawn, 6);
 
-        // Place rooks
+       // Place rooks
         PlacePiece(whiteRook, 0, 0);
         PlacePiece(whiteRook, 0, 7);
         PlacePiece(blackRook, 7, 0);
@@ -79,7 +91,7 @@ public class PiecePlacement : MonoBehaviour
         Vector3 position = new Vector3(col, row, positionZ);
         // Standardize the position.
         position = ChessUtilities.BoardPosition(position);
-
+       
         // Check with BoardManager if the position is occupied.
         if (BoardManager.Instance.IsOccupied(position))
         {
@@ -88,7 +100,12 @@ public class PiecePlacement : MonoBehaviour
         }
 
         GameObject piece = Instantiate(piecePrefab, position, Quaternion.identity);
-        piece.transform.SetParent(transform);
+     
+      //  GameObject parentTile = gameObject.GetComponent<ChessController>().GetTileAtPosition((int)position.x, (int)position.y);
+        //if(parentTile!=null)
+        //Debug.Log("parent tile" + parentTile.gameObject.name);
+       // piece.transform.SetParent(parentTile.transform, false);
+        piece.transform.SetParent(transform, false);
         PieceController pieceController = piece.GetComponent<PieceController>();
 
         if (pieceController != null)

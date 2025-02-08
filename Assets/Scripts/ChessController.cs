@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class ChessController : MonoBehaviour
 {
-    public PiecePlacement piecePlacement; // Reference to PiecePlacement for handling piece placement
     public GameObject tilePrefab;
     public Color blackTileColor;
     public Color whiteTileColor;
@@ -12,8 +12,9 @@ public class ChessController : MonoBehaviour
     
     void Start()
     {
+        //piecePlacement = GetComponent<PiecePlacement>();
         CreateBoard();
-        piecePlacement.PlacePieces();  // Delegate piece placement to PiecePlacement
+        //piecePlacement.PlacePieces();  // Delegate piece placement to PiecePlacement
     }
 
     void CreateBoard()
@@ -38,10 +39,13 @@ public class ChessController : MonoBehaviour
                 }
                 square.gameObject.name=tileColor+x+"_"+y;
                 square.transform.position = new Vector3(x, y, 0);
-               square.transform.SetParent(this.transform);
+                square.transform.SetParent(this.transform);
                 boardSquares[x, y] = square;
             }
         }
+    }
+    public GameObject GetTileAtPosition(int x, int y){
+       return boardSquares[x, y];
     }
 
    

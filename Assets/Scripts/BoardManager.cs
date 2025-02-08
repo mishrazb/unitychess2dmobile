@@ -17,8 +17,6 @@ public class BoardManager : MonoBehaviour
     // The actual dictionary for board state.
     private Dictionary<Vector3, PieceController> occupiedPositions = new Dictionary<Vector3, PieceController>();
 
-    // Cached reference to the PieceMovement component.
-    public PieceMovement pieceMovement;
 
     // Singleton instance.
     public static BoardManager Instance;
@@ -33,8 +31,8 @@ public class BoardManager : MonoBehaviour
         Instance = this;
 
         // Optionally cache PieceMovement (or set via Inspector).
-        if (pieceMovement == null)
-            pieceMovement = GetComponent<PieceMovement>();
+        //if (pieceMovement == null)
+          //  pieceMovement = GetComponent<PieceMovement>();
 
         UpdateOccupiedPositionsList();
     }
