@@ -417,6 +417,7 @@ GameObject:
   m_Component:
   - component: {fileID: 468286564}
   - component: {fileID: 468286563}
+  - component: {fileID: 468286565}
   m_Layer: 0
   m_Name: Pieces
   m_TagString: Untagged
@@ -465,6 +466,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1695861753}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &468286565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 468286562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30dff641abbc2ec48862a448d948fbaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &889691940
 GameObject:
   m_ObjectHideFlags: 0
@@ -866,6 +879,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1113360544}
   - component: {fileID: 1113360545}
+  - component: {fileID: 1113360546}
   m_Layer: 0
   m_Name: BoardTiles
   m_TagString: Untagged
@@ -900,12 +914,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 872f6fb7d1e6fea42ab9712cf52a1b6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whiteSquarePrefab: {fileID: 4413665807650615575, guid: 30b98eb11e87c8a4d98d7cbede52eb5d, type: 3}
-  blackSquarePrefab: {fileID: 3996564959113235648, guid: d3c0ce884ce53b54b82e26a0a131865a, type: 3}
   piecePlacement: {fileID: 468286563}
   tilePrefab: {fileID: 5762455892759881398, guid: e5326f5b3738fd74cad37f0da87e75c5, type: 3}
   blackTileColor: {r: 0.18867922, g: 0, b: 0, a: 1}
   whiteTileColor: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
+--- !u!114 &1113360546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1113360543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a3a21572681eb4cb54a22e898db5be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1412039928
 GameObject:
   m_ObjectHideFlags: 0
@@ -1143,9 +1167,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1695861751}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.5, y: 3.5, z: 0}
-  m_LocalScale: {x: 0.010407101, y: 0.010407101, z: 0.010407101}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 416304019}

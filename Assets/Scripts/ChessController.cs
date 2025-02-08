@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class ChessController : MonoBehaviour
 {
-    public GameObject whiteSquarePrefab;  // Reference to white square prefab
-    public GameObject blackSquarePrefab;  // Reference to black square prefab
     public PiecePlacement piecePlacement; // Reference to PiecePlacement for handling piece placement
- public GameObject tilePrefab;
- public Color blackTileColor;
- public Color whiteTileColor;
+    public GameObject tilePrefab;
+    public Color blackTileColor;
+    public Color whiteTileColor;
     private GameObject[,] boardSquares = new GameObject[8, 8];  // 8x8 grid
     
     void Start()
@@ -20,6 +18,7 @@ public class ChessController : MonoBehaviour
 
     void CreateBoard()
     {
+        string tileColor;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
@@ -29,18 +28,21 @@ public class ChessController : MonoBehaviour
                 {
                     square = Instantiate(tilePrefab);
                     square.GetComponent<SpriteRenderer>().color=whiteTileColor;
+                    tileColor = "white_tile_";
                 }
                 else
                 {
                     square = Instantiate(tilePrefab);
                     square.GetComponent<SpriteRenderer>().color=blackTileColor;
+                     tileColor = "black_tile_";
                 }
+                square.gameObject.name=tileColor+x+"_"+y;
                 square.transform.position = new Vector3(x, y, 0);
-                square.transform.SetParent(this.transform);
+               square.transform.SetParent(this.transform);
                 boardSquares[x, y] = square;
             }
         }
     }
 
-    // You can add other game logic here such as moves, checks, etc.
+   
 }
