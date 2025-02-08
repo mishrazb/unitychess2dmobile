@@ -1,3 +1,5 @@
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class InputManager : MonoBehaviour
@@ -9,66 +11,232 @@ public class InputManager : MonoBehaviour
 
     // Cached reference to the BoardManager.
     private BoardManager boardManager;
-
+   // private PieceMovement clickedTile;
     void Awake()
     {
         boardManager = BoardManager.Instance;
+      
     }
 
-    void Update()
+   void Update()
+{
+    if (Input.GetMouseButtonDown(0))
     {
-        if (Input.GetMouseButtonDown(0))
+        // Combine the board and piece layers.
+        int combinedLayerMask = boardLayer | pieceLayer;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 100f, combinedLayerMask))
         {
-            // Combine the board and piece layers.
-            int combinedLayerMask = boardLayer | pieceLayer;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            // Try to get the PieceController from the hit collider.
+            PieceController clickedPiece = hit.collider.GetComponent<PieceController>();
 
-            if (Physics.Raycast(ray, out hit, 100f, combinedLayerMask))
+            if (clickedPiece != null)
             {
-                // Try to get the PieceController from the hit collider.
-                PieceController clickedPiece = hit.collider.GetComponent<PieceController>();
-
-                // If a piece is clicked...
-                if (clickedPiece != null)
+                // No piece is currently selected.
+                if (PieceController.currentlySelectedPiece == null)
                 {
-                    // If no piece is selected...
-                    if (PieceController.currentlySelectedPiece == null)
+                    if (!GameManager.Instance.IsCurrentPlayerTurn(clickedPiece.isWhite))
                     {
-                        if (!GameManager.Instance.IsCurrentPlayerTurn(clickedPiece.isWhite))
-                        {
-                            Debug.Log("Not your turn!");
-                            return;
-                        }
-                        clickedPiece.OnPieceClicked();
+                        Debug.Log("Not your turn!");
+                        return;
                     }
-                    // If a piece is already selected:
-                    else
+                    clickedPiece.OnPieceClicked();
+                }
+                // A piece is already selected.
+                else
+                {
+                    // If the clicked piece belongs to the opponent, attempt capture.
+                   
+                   if (clickedPiece.isWhite != PieceController.currentlySelectedPiece.isWhite)
                     {
-                        // If clicking an enemy piece:
-                        if (clickedPiece.isWhite != PieceController.currentlySelectedPiece.isWhite)
+                        Vector3 target = ChessUtilities.BoardPosition(clickedPiece.transform.position);
+                        if (PieceController.currentlySelectedPiece.IsValidMove(target))
                         {
-                            Vector3 target = ChessUtilities.BoardPosition(clickedPiece.transform.position);
-                            boardManager.pieceMovement.OnTargetTileClicked(target);
+                            Debug.Log("Attempting capture move to " + target);
+                            // Use the cached pieceMovement from BoardManager instead of GetComponent.
+                            OnTargetTileClicked(target);
                         }
                         else
                         {
-                            // Switch selection to the friendly piece.
-                            clickedPiece.OnPieceClicked();
+                            Debug.Log("Enemy piece is not on a valid move square for capture.");
                         }
                     }
-                }
-                else
-                {
-                    // No piece was clicked; if a board tile was clicked, handle movement.
-                    PieceMovement clickedTile = hit.collider.GetComponentInParent<PieceMovement>();
-                    if (clickedTile != null && PieceController.currentlySelectedPiece != null)
+                    // If a friendly piece is clicked, change selection.
+                    else
                     {
-                        Vector3 target = ChessUtilities.BoardPosition(hit.collider.transform.position);
-                        clickedTile.OnTargetTileClicked(target);
+                        clickedPiece.OnPieceClicked();
                     }
+                }
+            }
+            else
+            {
+                // No piece was clicked; check if a board tile was hit.
+         
+                Vector3 target = ChessUtilities.BoardPosition(hit.collider.transform.position);
+                if (target != null && PieceController.currentlySelectedPiece != null)
+                {
+                    OnTargetTileClicked(target);
                 }
             }
         }
     }
+}
+
+
+ public void OnTargetTileClicked(Vector3 targetPosition)
+    {
+        if (PieceController.currentlySelectedPiece != null)
+        {
+            // Standardize the target board position.
+            targetPosition = ChessUtilities.BoardPosition(targetPosition);
+
+            if (PieceController.currentlySelectedPiece.IsValidMove(targetPosition))
+            {
+                TryMovePiece(targetPosition);
+            }
+            else
+            {
+                Debug.Log("PieceMovement: Invalid move!");
+            }
+        }
+        else
+        {
+            Debug.Log("Piece not selected");
+        }
+    }
+
+    /// <summary>
+    /// Attempts to move the currently selected piece to the given target.
+    /// Records the starting position (for en passant) before moving.
+    /// </summary>
+    public void TryMovePiece(Vector3 target)
+    {
+        if (PieceController.currentlySelectedPiece == null)
+            return;
+
+        PieceController selectedPiece = PieceController.currentlySelectedPiece;
+
+        if (!GameManager.Instance.IsCurrentPlayerTurn(selectedPiece.isWhite))
+        {
+            Debug.Log("Not your turn!");
+            return;
+        }
+
+        // Save the starting (pre-move) board position.
+        Vector3 startingPos = ChessUtilities.BoardPosition(selectedPiece.transform.position);
+
+        Debug.Log("Is valid move target " + target + " for " + selectedPiece.gameObject.name);
+        if (!IsValidMove(target, selectedPiece))
+        {
+            Debug.Log("Invalid move attempt.");
+            return;
+        }
+
+        // Process en passant before moving the piece.
+        bool isEnPassant = HandleEnPassant(target, selectedPiece);
+        bool isCapture = HandleCapture(target, selectedPiece);
+
+        // Move the piece using the BoardManager's API.
+        MovePiece(target, selectedPiece);
+
+        // Store last move details for future en passant checks.
+        GameManager.Instance.lastMovedPiece = selectedPiece;
+        GameManager.Instance.lastMoveStartPos = startingPos;
+
+        selectedPiece.isSelected = false;
+        selectedPiece.Deselect();
+        PieceController.currentlySelectedPiece = null;
+
+        GameManager.Instance.EndTurn();
+    }
+
+    /// <summary>
+    /// Validates the target move against the piece’s list of valid moves.
+    /// </summary>
+    private bool IsValidMove(Vector3 target, PieceController piece)
+    {
+        // Ensure the target is in board coordinates.
+        target = ChessUtilities.BoardPosition(target);
+        Vector3[] validMoves = piece.GetValidMoves();
+        return validMoves.Any(move => Vector3.Distance(move, target) < 0.1f);
+    }
+
+    /// <summary>
+    /// Checks if the move results in a capture.
+    /// If so, removes the captured piece from the board.
+    /// </summary>
+    private bool HandleCapture(Vector3 target, PieceController piece)
+    {
+        // Standardize the target coordinate.
+        target = ChessUtilities.BoardPosition(target);
+
+        // Get the piece at the target position via BoardManager.
+        PieceController targetPiece = BoardManager.Instance.GetPieceAt(target);
+        if (targetPiece != null && targetPiece.isWhite != piece.isWhite)
+        {
+            Debug.Log("Captured: " + targetPiece.name);
+            BoardManager.Instance.RemovePieceAt(target);
+            Destroy(targetPiece.gameObject);
+            return true;
+        }
+        else
+        {
+            Debug.Log("Capture attempt failed: No enemy piece found at target or position mismatch.");
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Processes an en passant move if the conditions are met.
+    /// Uses the stored last move data to determine if an adjacent enemy pawn moved two squares.
+    /// </summary>
+    private bool HandleEnPassant(Vector3 target, PieceController piece)
+    {
+        target = ChessUtilities.BoardPosition(target);
+        if (piece.selectedPieceType != PieceController.pieceType.Pawn)
+            return false;
+
+        if (GameManager.Instance.lastMovedPiece != null &&
+            GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+        {
+            Vector3 lastMoveStart = ChessUtilities.BoardPosition(GameManager.Instance.lastMoveStartPos);
+            Vector3 lastMoveEnd = ChessUtilities.BoardPosition(GameManager.Instance.lastMovedPiece.transform.position);
+            Vector3 currentPos = ChessUtilities.BoardPosition(piece.transform.position);
+
+            // Validate that the enemy pawn moved two squares, is on the same rank as our pawn,
+            // and is horizontally adjacent.
+            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
+                lastMoveEnd.y == currentPos.y &&
+                Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
+            {
+                // Determine the captured pawn's board position.
+                Vector3 capturedPawnPosition = new Vector3(lastMoveEnd.x, lastMoveEnd.y, -1);
+
+                PieceController capturedPawn = BoardManager.Instance.GetPieceAt(capturedPawnPosition);
+                if (capturedPawn != null && capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
+                {
+                    Debug.Log($"Captured via En Passant: {capturedPawn.name} at {capturedPawnPosition}");
+                    BoardManager.Instance.RemovePieceAt(capturedPawnPosition);
+                    Destroy(capturedPawn.gameObject);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Moves the piece to the target position using the BoardManager's API.
+    /// </summary>
+    private void MovePiece(Vector3 target, PieceController piece)
+    {
+        target = ChessUtilities.BoardPosition(target);
+        // Let the BoardManager handle updating the board state and moving the piece.
+        BoardManager.Instance.MovePiece(piece, target);
+    }
+
+
+
 }
