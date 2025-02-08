@@ -1,17 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class PositionPiecePair
-{
-    public Vector3 position;
-    public PieceController piece;
-
-}
-
-public  class PiecePlacement : MonoBehaviour
+public class PiecePlacement : MonoBehaviour
 {
     [Header("White Pieces")]
     public GameObject whitePawn;
@@ -28,25 +19,16 @@ public  class PiecePlacement : MonoBehaviour
     public GameObject blackBishop;
     public GameObject blackQueen;
     public GameObject blackKing;
-   public static PiecePlacement piecePlacement = null;
+
     [SerializeField]
     private float positionZ = -1f; // Depth for pieces to be above board
 
-    // Serialized List for Inspector debugging
-    [SerializeField]
-    public List<PositionPiecePair> occupiedPositionsList = new List<PositionPiecePair>();
-
-    // Actual Dictionary (not directly visible in Inspector)
-    public Dictionary<Vector3, PieceController> occupiedPositions = new Dictionary<Vector3, PieceController>();
-
- public static PiecePlacement Instance { get; private set; }
+    public static PiecePlacement Instance { get; private set; }
 
     private void Awake()
     {
-         if (Instance == null) Instance = this;
+        if (Instance == null) Instance = this;
         else Destroy(gameObject);
-        
-        SyncListToDictionary();
     }
 
     #region Piece Placement
@@ -95,77 +77,28 @@ public  class PiecePlacement : MonoBehaviour
     private void PlacePiece(GameObject piecePrefab, int row, int col)
     {
         Vector3 position = new Vector3(col, row, positionZ);
+        // Standardize the position.
+        position = ChessUtilities.BoardPosition(position);
 
-        if (occupiedPositions.ContainsKey(position))
+        // Check with BoardManager if the position is occupied.
+        if (BoardManager.Instance.IsOccupied(position))
         {
             Debug.LogWarning($"Attempted to place a piece at an occupied position: {position}");
             return;
         }
 
         GameObject piece = Instantiate(piecePrefab, position, Quaternion.identity);
-        
-       
         piece.transform.SetParent(transform);
         PieceController pieceController = piece.GetComponent<PieceController>();
 
         if (pieceController != null)
         {
-
-            occupiedPositions.Add(position, pieceController);
-            occupiedPositionsList.Add(new PositionPiecePair { position = position, piece = pieceController });
+            // Instead of directly modifying BoardManager's dictionary, call AddPiece.
+            BoardManager.Instance.AddPiece(position, pieceController);
         }
         else
         {
             Debug.LogError($"Piece at {position} is missing a PieceController component.");
-        }
-    }
-
-    public bool IsPositionOccupied(Vector3 position)
-    {
-        return occupiedPositions.ContainsKey(position);
-    }
-
-    public PieceController GetPieceAtPosition(Vector3 position)
-    {
-        if (occupiedPositions.TryGetValue(position, out PieceController piece))
-        {
-            return piece;
-        }
-        return null;
-    }
-
-    public void MovePiece(PieceController piece, Vector3 newPosition)
-    {
-        if (IsPositionOccupied(newPosition))
-        {
-            Debug.Log($"Position {newPosition} is occupied. Capture logic required.");
-            return;
-        }
-
-        occupiedPositions.Remove(piece.transform.position);
-        piece.transform.position = newPosition;
-        occupiedPositions.Add(newPosition, piece);
-
-        UpdateOccupiedPositions(); // Sync the list after moving
-    }
-
-    // Syncs the Dictionary into the List for debugging
-    private void UpdateOccupiedPositions()
-    {
-        occupiedPositionsList.Clear();
-        foreach (var kvp in occupiedPositions)
-        {
-            occupiedPositionsList.Add(new PositionPiecePair { position = kvp.Key, piece = kvp.Value });
-        }
-    }
-
-    // Syncs the List into the Dictionary on Awake
-    private void SyncListToDictionary()
-    {
-        occupiedPositions.Clear();
-        foreach (var pair in occupiedPositionsList)
-        {
-            occupiedPositions[pair.position] = pair.piece;
         }
     }
 }

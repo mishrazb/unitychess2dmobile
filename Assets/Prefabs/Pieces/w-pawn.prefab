@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 8774608703933711491}
   - component: {fileID: 3027751386199096623}
   - component: {fileID: 2627933515635113498}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: w-pawn
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

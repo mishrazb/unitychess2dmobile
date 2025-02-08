@@ -60,16 +60,17 @@ public class PieceMovement : MonoBehaviour
         bool isEnPassant = HandleEnPassant(target, selectedPiece);
         bool isCapture = HandleCapture(target, selectedPiece);
 
-        // Move the piece.
+        // Move the piece using the BoardManager's API.
         MovePiece(target, selectedPiece);
 
-        // Store last move details for future en passant checks:
-        // startingPos is the pre–move position, and the new position is stored in the piece.
+        // Store last move details for future en passant checks.
         GameManager.Instance.lastMovedPiece = selectedPiece;
         GameManager.Instance.lastMoveStartPos = startingPos;
 
         selectedPiece.isSelected = false;
         selectedPiece.Deselect();
+        PieceController.currentlySelectedPiece = null;
+
         GameManager.Instance.EndTurn();
     }
 
@@ -90,20 +91,21 @@ public class PieceMovement : MonoBehaviour
     /// </summary>
     private bool HandleCapture(Vector3 target, PieceController piece)
     {
+        // Standardize the target coordinate.
         target = ChessUtilities.BoardPosition(target);
-        if (piece.piecePlacement.occupiedPositions.TryGetValue(target, out PieceController targetPiece))
+
+        // Get the piece at the target position via BoardManager.
+        PieceController targetPiece = BoardManager.Instance.GetPieceAt(target);
+        if (targetPiece != null && targetPiece.isWhite != piece.isWhite)
         {
-            if (targetPiece.isWhite != piece.isWhite)
-            {
-                Debug.Log("Captured: " + targetPiece.name);
-                piece.piecePlacement.occupiedPositions.Remove(target);
-                Destroy(targetPiece.gameObject);
-                return true;
-            }
-            else
-            {
-                Debug.Log("Cannot capture your own piece!");
-            }
+            Debug.Log("Captured: " + targetPiece.name);
+            BoardManager.Instance.RemovePieceAt(target);
+            Destroy(targetPiece.gameObject);
+            return true;
+        }
+        else
+        {
+            Debug.Log("Capture attempt failed: No enemy piece found at target or position mismatch.");
         }
         return false;
     }
@@ -131,18 +133,16 @@ public class PieceMovement : MonoBehaviour
                 lastMoveEnd.y == currentPos.y &&
                 Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
             {
-                // The enemy pawn’s position (which should be removed via en passant)
+                // Determine the captured pawn's board position.
                 Vector3 capturedPawnPosition = new Vector3(lastMoveEnd.x, lastMoveEnd.y, -1);
 
-                if (piece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
+                PieceController capturedPawn = BoardManager.Instance.GetPieceAt(capturedPawnPosition);
+                if (capturedPawn != null && capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
                 {
-                    if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
-                    {
-                        Debug.Log($"Captured via En Passant: {capturedPawn.name} at {capturedPawnPosition}");
-                        piece.piecePlacement.occupiedPositions.Remove(capturedPawnPosition);
-                        Destroy(capturedPawn.gameObject);
-                        return true;
-                    }
+                    Debug.Log($"Captured via En Passant: {capturedPawn.name} at {capturedPawnPosition}");
+                    BoardManager.Instance.RemovePieceAt(capturedPawnPosition);
+                    Destroy(capturedPawn.gameObject);
+                    return true;
                 }
             }
         }
@@ -150,26 +150,12 @@ public class PieceMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Moves the piece to the target position.
-    /// Updates the piece’s position in the occupancy dictionary.
+    /// Moves the piece to the target position using the BoardManager's API.
     /// </summary>
     private void MovePiece(Vector3 target, PieceController piece)
     {
-        // Remove the piece from its current board position.
-        Vector3 currentPos = ChessUtilities.BoardPosition(piece.transform.position);
-        piece.piecePlacement.occupiedPositions.Remove(currentPos);
-
-        // Standardize the target position and update the occupancy dictionary.
         target = ChessUtilities.BoardPosition(target);
-        piece.piecePlacement.occupiedPositions[target] = piece;
-
-        // Move the piece’s transform to the new target.
-        piece.transform.position = target;
+        // Let the BoardManager handle updating the board state and moving the piece.
+        BoardManager.Instance.MovePiece(piece, target);
     }
-
-    /// <summary>
-    /// Helper method to standardize board positions.
-    /// In this implementation, board positions are on the X-Y plane with a fixed z of -1.
-    /// </summary>
- 
 }

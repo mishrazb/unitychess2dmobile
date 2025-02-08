@@ -16,33 +16,38 @@ public class PieceController : MonoBehaviour
     public static PieceController currentlySelectedPiece = null;
     public List<GameObject> validMoveIndicators = new List<GameObject>();
     public bool isSelected = false;
-    public PiecePlacement piecePlacement;
+
+    // We no longer need to reference PiecePlacement for board occupancy,
+    // since BoardManager is now the central authority.
+    // private PiecePlacement piecePlacement;
 
     private void Start()
     {
-        piecePlacement = FindObjectOfType<PiecePlacement>();
-        if (piecePlacement == null)
-        {
-            Debug.LogError("PiecePlacement not found! Ensure there is a PiecePlacement object in the scene.");
-        }
+        // (Optional) If needed for other purposes, you may still retrieve PiecePlacement.
+        // piecePlacement = FindObjectOfType<PiecePlacement>();
+        // Otherwise, board state will be accessed via BoardManager.Instance.
     }
 
+    /// <summary>
+    /// Called when this piece is clicked.
+    /// Handles selection (and deselection) and turn validation.
+    /// </summary>
     public void OnPieceClicked()
     {
-        // Ensure it is the correct turn
+        // Ensure it is the correct turn.
         if (!GameManager.Instance.IsCurrentPlayerTurn(isWhite))
         {
             Debug.Log("Not your turn!");
             return;
         }
 
-        // Deselect previously selected piece if different from current one
+        // Deselect any previously selected piece that is different.
         if (currentlySelectedPiece != null && currentlySelectedPiece != this)
         {
             currentlySelectedPiece.Deselect();
         }
 
-        // Toggle selection
+        // Toggle selection.
         isSelected = !isSelected;
         currentlySelectedPiece = isSelected ? this : null;
 
@@ -61,9 +66,12 @@ public class PieceController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Deselects this piece and removes any valid move indicators.
+    /// </summary>
     public void Deselect()
     {
-        // Remove all valid move indicators by tag
+        // Remove all valid move indicators by tag.
         GameObject[] outlines = GameObject.FindGameObjectsWithTag("ValidMove");
         foreach (GameObject outline in outlines)
         {
@@ -72,13 +80,16 @@ public class PieceController : MonoBehaviour
         validMoveIndicators.Clear();
     }
 
+    /// <summary>
+    /// Highlights valid moves by instantiating indicators on the board.
+    /// </summary>
     private void HighlightValidMoves()
     {
         Vector3[] validMoves = GetValidMoves();
         validMoveIndicators.Clear();
         foreach (Vector3 move in validMoves)
         {
-            // Ensure that the z coordinate matches our board standard
+            // Ensure the z coordinate matches the board standard.
             Vector3 mmove = move;
             mmove.z = ChessUtilities.BoardPosition(transform.position).z;
 
@@ -93,26 +104,30 @@ public class PieceController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Determines if a move is valid for this piece.
+    /// Uses the BoardManager’s state to check for occupancy.
+    /// </summary>
     public bool IsValidMove(Vector3 move)
     {
-        return IsValidMove(move, piecePlacement);
+        return IsValidMove(move, BoardManager.Instance);
     }
 
-    public bool IsValidMove(Vector3 move, PiecePlacement piecePlacement)
+    private bool IsValidMove(Vector3 move, BoardManager boardManager)
     {
         if (!ChessUtilities.IsWithinBounds(move))
             return false;
-        if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
-            return piece.isWhite != this.isWhite;
+        // Get any piece at the target square.
+        PieceController other = boardManager.GetPieceAt(move);
+        // If the square is occupied, it must be by an opponent.
+        if (other != null)
+            return other.isWhite != this.isWhite;
         return true;
     }
-/*
-    public bool IsWithinBounds(Vector3 position)
-    {
-        return position.x >= 0 && position.x < 8 &&
-               position.y >= 0 && position.y < 8;
-    }
-*/
+
+    /// <summary>
+    /// Returns an array of board positions representing valid moves.
+    /// </summary>
     public Vector3[] GetValidMoves()
     {
         return selectedPieceType switch
@@ -138,7 +153,8 @@ public class PieceController : MonoBehaviour
             Vector3 move = currentPos + direction;
             while (ChessUtilities.IsWithinBounds(move))
             {
-                if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
+                PieceController piece = BoardManager.Instance.GetPieceAt(move);
+                if (piece != null)
                 {
                     if (piece.isWhite != isWhite)
                         moves.Add(move);
@@ -168,14 +184,14 @@ public class PieceController : MonoBehaviour
         Vector3 currentPos = ChessUtilities.BoardPosition(transform.position);
         Vector3 forwardMove = currentPos + new Vector3(0, direction, 0);
 
-        if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
+        if (!BoardManager.Instance.IsOccupied(forwardMove))
         {
             Debug.Log($"{name}: Adding Single Forward Move {forwardMove}");
             moves.Add(forwardMove);
 
             Vector3 doubleForwardMove = currentPos + new Vector3(0, direction * 2, 0);
             bool isAtStartingRank = (isWhite && currentPos.y == 1) || (!isWhite && currentPos.y == 6);
-            if (isAtStartingRank && !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
+            if (isAtStartingRank && !BoardManager.Instance.IsOccupied(doubleForwardMove))
             {
                 Debug.Log($"{name}: Adding Double Forward Move {doubleForwardMove}");
                 moves.Add(doubleForwardMove);
@@ -193,20 +209,20 @@ public class PieceController : MonoBehaviour
         Vector3 leftDiagonal = currentPos + new Vector3(-1, direction, 0);
         Vector3 rightDiagonal = currentPos + new Vector3(1, direction, 0);
 
-        // Left diagonal capture
-        if (currentPos.x > 0 && piecePlacement.IsPositionOccupied(leftDiagonal))
+        // Left diagonal capture.
+        if (currentPos.x > 0 && BoardManager.Instance.IsOccupied(leftDiagonal))
         {
-            PieceController leftPiece = piecePlacement.GetPieceAtPosition(leftDiagonal);
+            PieceController leftPiece = BoardManager.Instance.GetPieceAt(leftDiagonal);
             if (leftPiece != null && leftPiece.isWhite != isWhite)
             {
                 moves.Add(leftDiagonal);
             }
         }
 
-        // Right diagonal capture
-        if (currentPos.x < 7 && piecePlacement.IsPositionOccupied(rightDiagonal))
+        // Right diagonal capture.
+        if (currentPos.x < 7 && BoardManager.Instance.IsOccupied(rightDiagonal))
         {
-            PieceController rightPiece = piecePlacement.GetPieceAtPosition(rightDiagonal);
+            PieceController rightPiece = BoardManager.Instance.GetPieceAt(rightDiagonal);
             if (rightPiece != null && rightPiece.isWhite != isWhite)
             {
                 moves.Add(rightDiagonal);
@@ -219,18 +235,20 @@ public class PieceController : MonoBehaviour
         if (GameManager.Instance.lastMovedPiece != null &&
             GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
         {
+            // Assume lastMoveStartPos is already standardized.
             Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
             Vector3 lastMoveEnd = ChessUtilities.BoardPosition(GameManager.Instance.lastMovedPiece.transform.position);
             Vector3 currentPos = ChessUtilities.BoardPosition(transform.position);
 
-            // Ensure the enemy pawn moved two squares and is adjacent horizontally
+            // Check that the enemy pawn moved two squares, is on the same rank as this pawn,
+            // and is horizontally adjacent.
             if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
                 lastMoveEnd.y == currentPos.y &&
                 Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
             {
                 Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, currentPos.y + direction, currentPos.z);
                 Debug.Log($"En Passant Move Detected for {name} at {enPassantTarget}");
-                if (!piecePlacement.occupiedPositions.ContainsKey(enPassantTarget))
+                if (!BoardManager.Instance.IsOccupied(enPassantTarget))
                 {
                     moves.Add(enPassantTarget);
                 }
@@ -254,7 +272,8 @@ public class PieceController : MonoBehaviour
             Vector3 move = currentPos + direction;
             while (ChessUtilities.IsWithinBounds(move))
             {
-                if (piecePlacement.occupiedPositions.TryGetValue(move, out PieceController piece))
+                PieceController piece = BoardManager.Instance.GetPieceAt(move);
+                if (piece != null)
                 {
                     if (piece.isWhite != isWhite)
                         moves.Add(move);
@@ -302,6 +321,4 @@ public class PieceController : MonoBehaviour
                         .Where(IsValidMove)
                         .ToArray();
     }
-
- 
 }
