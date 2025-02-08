@@ -206,6 +206,7 @@ public class PieceController : MonoBehaviour
         }
     }
 
+
     return moves.ToArray();
 }
 

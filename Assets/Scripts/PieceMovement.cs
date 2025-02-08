@@ -104,7 +104,7 @@ public void TryMovePiece(Vector3 target)
             // 🔥 Check if last move was a double-step pawn move
             if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
                 lastMoveEnd.y == selectedPiece.transform.position.y &&
-                (selectedPiece.transform.position.x == lastMoveEnd.x - 1 || selectedPiece.transform.position.x == lastMoveEnd.x + 1)) // ✅ FIXED!
+                selectedPiece.transform.position.x == lastMoveEnd.x - 1 || selectedPiece.transform.position.x == lastMoveEnd.x + 1) // ✅ FIXED!
             {
                 // 🔥 Ensure the target is the correct diagonal square
                 if (target == new Vector3(lastMoveEnd.x, selectedPiece.transform.position.y + (selectedPiece.isWhite ? 1 : -1), -1))
