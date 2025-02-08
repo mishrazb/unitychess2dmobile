@@ -13,7 +13,7 @@ public class PieceMovement : MonoBehaviour
        // pieceController = FindObjectOfType<PieceController>();  // Alternatively, set it via inspector
     }
 
-    void OnMouseDown()
+ /*   void OnMouseDown()
     {
         // Ensure there's a selected piece
         if (PieceController.currentlySelectedPiece != null)
@@ -36,7 +36,7 @@ public class PieceMovement : MonoBehaviour
             Debug.Log("Piece not selected");
         }
     }
-
+*/
 void Update()
 {
     if (Input.GetMouseButtonDown(0))
@@ -61,112 +61,118 @@ void Update()
         }
     }
 }
-public void TryMovePiece(Vector3 target)
-{
-    if (PieceController.currentlySelectedPiece == null)
-        return;
-
-    PieceController selectedPiece = PieceController.currentlySelectedPiece;
-
-    if (!GameManager.Instance.IsCurrentPlayerTurn(selectedPiece.isWhite))
+void OnMouseDown()
     {
-        Debug.Log("Not your turn!");
-        return;
-    }
-
-    // 🔥 Step 1: Validate Move - Special Case for En Passant
-    Vector3[] validMoves = selectedPiece.GetValidMoves();
-    bool isValidMove = false;
-    bool isEnPassant = false;
-
-    foreach (Vector3 move in validMoves)
-    {
-        Vector3 mmove = move;
-        mmove.z = -1;
-        if (Vector3.Distance(mmove, target) < 0.1f) // Handle floating-point precision
+        if (PieceController.currentlySelectedPiece != null)
         {
-            isValidMove = true;
-            break;
-        }
-    }
+            Vector3 targetPosition = transform.position;
+            targetPosition.z = PieceController.currentlySelectedPiece.transform.position.z;
 
-    // 🔥 Step 2: En Passant Validation (Even if target is empty)
-    if (isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
-    {
-        Debug.Log("Checking for En Passant...");
-
-        if (GameManager.Instance.lastMovedPiece != null &&
-            GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
-        {
-            Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
-            Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
-
-            // 🔥 Check if last move was a double-step pawn move
-            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
-                lastMoveEnd.y == selectedPiece.transform.position.y &&
-                selectedPiece.transform.position.x == lastMoveEnd.x - 1 || selectedPiece.transform.position.x == lastMoveEnd.x + 1) // ✅ FIXED!
+            if (PieceController.currentlySelectedPiece.IsValidMove(targetPosition))
             {
-                // 🔥 Ensure the target is the correct diagonal square
-                if (target == new Vector3(lastMoveEnd.x, selectedPiece.transform.position.y + (selectedPiece.isWhite ? 1 : -1), -1))
-                {
-                    isValidMove = true;
-                    isEnPassant = true;
-                }
+                TryMovePiece(targetPosition);
             }
-        }
-    }
-
-    if (!isValidMove)
-    {
-        Debug.Log("Invalid Move Attempt! The move is not in the valid moves list.");
-        return;
-    }
-
-    // 🔥 Step 3: Capture Logic (Including En Passant)
-    if (isEnPassant)
-    {
-        Vector3 capturedPawnPosition = new Vector3(target.x, target.y - (selectedPiece.isWhite ? 1 : -1), -1); // ✅ FIXED!
-        if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
-        {
-            if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
+            else
             {
-                Debug.Log("Captured via En Passant: " + capturedPawn.name);
-                Destroy(capturedPawn.gameObject);
-                selectedPiece.piecePlacement.occupiedPositions.Remove(capturedPawnPosition);
+                Debug.Log("Invalid move!");
             }
-        }
-    }
-    else if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(target, out PieceController targetPiece))
-    {
-        if (targetPiece.isWhite != selectedPiece.isWhite) // Standard capture
-        {
-            Debug.Log("Captured: " + targetPiece.name);
-            Destroy(targetPiece.gameObject);
-            selectedPiece.piecePlacement.occupiedPositions.Remove(target);
         }
         else
         {
-            Debug.Log("Cannot capture your own piece!");
-            return;
+            Debug.Log("Piece not selected");
         }
     }
 
-    // 🔥 Step 4: Update Board State
-    Vector3 previousPosition = selectedPiece.transform.position;
-    selectedPiece.piecePlacement.occupiedPositions.Remove(previousPosition);
-    selectedPiece.piecePlacement.occupiedPositions[target] = selectedPiece;
+  public void TryMovePiece(Vector3 target)
+    {
+        if (PieceController.currentlySelectedPiece == null)
+            return;
 
-    // Move piece
-    target.z = -1;
-    selectedPiece.transform.position = target;
+        PieceController selectedPiece = PieceController.currentlySelectedPiece;
 
-    // 🔥 Store last moved piece for future en passant checks
-    GameManager.Instance.lastMovedPiece = selectedPiece;
-    GameManager.Instance.lastMoveStartPos = previousPosition;
+        if (!GameManager.Instance.IsCurrentPlayerTurn(selectedPiece.isWhite))
+        {
+            Debug.Log("Not your turn!");
+            return;
+        }
 
-    // 🔥 Step 5: Deselect & End Turn
-    selectedPiece.isSelected = false;
-    selectedPiece.Deselect();
-    GameManager.Instance.EndTurn();
-}
+        Vector3[] validMoves = selectedPiece.GetValidMoves();
+        bool isValidMove = validMoves.Any(move => Vector3.Distance(move, target) < 0.1f);
+        bool isEnPassant = false;
+
+        if (isValidMove && selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+        {
+            if (GameManager.Instance.lastMovedPiece != null &&
+                GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+            {
+                Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
+                Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
+
+                if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
+                    lastMoveEnd.y == selectedPiece.transform.position.y)
+                {
+                    bool isLeftEnPassant = (selectedPiece.transform.position.x == lastMoveEnd.x + 1);
+                    bool isRightEnPassant = (selectedPiece.transform.position.x == lastMoveEnd.x - 1);
+
+                    if ((isLeftEnPassant && lastMoveEnd.x > 0) || (isRightEnPassant && lastMoveEnd.x < 7))
+                    {
+                        Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, selectedPiece.transform.position.y + (selectedPiece.isWhite ? 1 : -1), -1);
+                        if (target == enPassantTarget)
+                        {
+                            isValidMove = true;
+                            isEnPassant = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isValidMove)
+        {
+            Debug.Log("Invalid Move Attempt! The move is not in the valid moves list.");
+            return;
+        }
+
+        if (isEnPassant)
+        {
+            Vector3 capturedPawnPosition = new Vector3(target.x, target.y - (selectedPiece.isWhite ? 1 : -1), 0);
+            if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(capturedPawnPosition, out PieceController capturedPawn))
+            {
+                if (capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
+                {
+                    Debug.Log($"Captured via En Passant: {capturedPawn.name}");
+                    selectedPiece.piecePlacement.occupiedPositions.Remove(capturedPawnPosition);
+                    Destroy(capturedPawn.gameObject);
+                }
+            }
+        }
+        else if (selectedPiece.piecePlacement.occupiedPositions.TryGetValue(target, out PieceController targetPiece))
+        {
+            if (targetPiece.isWhite != selectedPiece.isWhite)
+            {
+                Debug.Log("Captured: " + targetPiece.name);
+                Destroy(targetPiece.gameObject);
+                selectedPiece.piecePlacement.occupiedPositions.Remove(target);
+            }
+            else
+            {
+                Debug.Log("Cannot capture your own piece!");
+                return;
+            }
+        }
+
+        Vector3 previousPosition = selectedPiece.transform.position;
+        selectedPiece.piecePlacement.occupiedPositions.Remove(previousPosition);
+        selectedPiece.piecePlacement.occupiedPositions[target] = selectedPiece;
+
+        target.z = -1;
+        selectedPiece.transform.position = target;
+
+        GameManager.Instance.lastMovedPiece = selectedPiece;
+        GameManager.Instance.lastMoveStartPos = previousPosition;
+
+        selectedPiece.isSelected = false;
+        selectedPiece.Deselect();
+        GameManager.Instance.EndTurn();
+    }
 }

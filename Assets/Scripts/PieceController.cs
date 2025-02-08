@@ -147,69 +147,64 @@ public class PieceController : MonoBehaviour
         return moves.ToArray();
     }
 
-    private Vector3[] GetPawnMoves()
-{
-    List<Vector3> moves = new List<Vector3>();
-    int direction = isWhite ? 1 : -1;
-    Vector3 forwardMove = transform.position + new Vector3(0, direction, 0);
-
-    // 🔥 Standard forward move
-    if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
+  private Vector3[] GetPawnMoves()
     {
-        moves.Add(forwardMove);
+        List<Vector3> moves = new List<Vector3>();
+        int direction = isWhite ? 1 : -1;
+        Vector3 forwardMove = transform.position + new Vector3(0, direction, 0);
 
-        // 🔥 First double-step move
-        Vector3 doubleForwardMove = transform.position + new Vector3(0, direction * 2, 0);
-        if ((transform.position.y == (isWhite ? 1 : 6)) &&
-            !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
+        if (!piecePlacement.occupiedPositions.ContainsKey(forwardMove))
         {
-            moves.Add(doubleForwardMove);
-        }
-    }
-
-    // 🔥 Normal diagonal captures
-    Vector3 leftDiagonal = transform.position + new Vector3(-1, direction, 0);
-    Vector3 rightDiagonal = transform.position + new Vector3(1, direction, 0);
-    
-    if (piecePlacement.occupiedPositions.TryGetValue(leftDiagonal, out PieceController leftPiece) &&
-        leftPiece.isWhite != isWhite)
-    {
-        moves.Add(leftDiagonal);
-    }
-    
-    if (piecePlacement.occupiedPositions.TryGetValue(rightDiagonal, out PieceController rightPiece) &&
-        rightPiece.isWhite != isWhite)
-    {
-        moves.Add(rightDiagonal);
-    }
-
-   // 🔥 En Passant Check
-    if (GameManager.Instance.lastMovedPiece != null && GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
-    {
-        Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
-        Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
-
-        // 🔥 Ensure last move was a double-step move and on the same row
-        if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 && lastMoveEnd.y == transform.position.y)
-        {
-            // 🔥 Check for left-side en passant
-            if (transform.position.x == lastMoveEnd.x + 1)
+            moves.Add(forwardMove);
+            Vector3 doubleForwardMove = transform.position + new Vector3(0, direction * 2, 0);
+            if ((transform.position.y == (isWhite ? 1 : 6)) &&
+                !piecePlacement.occupiedPositions.ContainsKey(doubleForwardMove))
             {
-                moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move diagonally forward-left
-            }
-
-            // 🔥 Check for right-side en passant
-            if (transform.position.x == lastMoveEnd.x - 1)
-            {
-                moves.Add(new Vector3(lastMoveEnd.x, transform.position.y + direction, 0)); // Move diagonally forward-right
+                moves.Add(doubleForwardMove);
             }
         }
+
+        Vector3 leftDiagonal = transform.position + new Vector3(-1, direction, 0);
+        Vector3 rightDiagonal = transform.position + new Vector3(1, direction, 0);
+
+        if (transform.position.x > 0 && piecePlacement.IsPositionOccupied(leftDiagonal))
+        {
+            PieceController leftPiece = piecePlacement.GetPieceAtPosition(leftDiagonal);
+            if (leftPiece != null && leftPiece.isWhite != isWhite)
+            {
+                moves.Add(leftDiagonal);
+            }
+        }
+
+        if (transform.position.x < 7 && piecePlacement.IsPositionOccupied(rightDiagonal))
+        {
+            PieceController rightPiece = piecePlacement.GetPieceAtPosition(rightDiagonal);
+            if (rightPiece != null && rightPiece.isWhite != isWhite)
+            {
+                moves.Add(rightDiagonal);
+            }
+        }
+
+        if (GameManager.Instance.lastMovedPiece != null &&
+            GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
+        {
+            Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
+            Vector3 lastMoveEnd = GameManager.Instance.lastMovedPiece.transform.position;
+
+            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
+                Mathf.Abs(lastMoveEnd.x - transform.position.x) == 1 &&
+                lastMoveEnd.y == transform.position.y)
+            {
+                Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, transform.position.y + direction, -1);
+                if (!piecePlacement.occupiedPositions.ContainsKey(enPassantTarget))
+                {
+                    moves.Add(enPassantTarget);
+                }
+            }
+        }
+
+        return moves.ToArray();
     }
-
-
-    return moves.ToArray();
-}
-
     private Vector3[] GetBishopMoves()
     {
         List<Vector3> moves = new List<Vector3>();
