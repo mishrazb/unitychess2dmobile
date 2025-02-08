@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 6776680953307135316}
   - component: {fileID: 8673922442612354582}
   - component: {fileID: 8412661184385958737}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: w-bishop
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

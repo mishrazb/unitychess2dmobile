@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 7854583707148405163}
   - component: {fileID: 3792183664072193147}
   - component: {fileID: 6339340344354459287}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: w-queen
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

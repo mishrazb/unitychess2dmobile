@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 6077403440104048701}
   - component: {fileID: 4498432431939375687}
   - component: {fileID: 7095673577140764527}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: w-rook
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

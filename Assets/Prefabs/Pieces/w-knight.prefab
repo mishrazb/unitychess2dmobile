@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 3530771719981244166}
   - component: {fileID: 5390783759316660589}
   - component: {fileID: 6466260482822429160}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: w-knight
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

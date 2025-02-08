@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 1799695337220746161}
   - component: {fileID: 6899414416279918126}
   - component: {fileID: 3487093479564915054}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: b-king
-  m_TagString: Untagged
+  m_TagString: Pieces
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
