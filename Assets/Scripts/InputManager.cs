@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -91,7 +92,6 @@ public class InputManager : MonoBehaviour
         {
             // Standardize the target board position.
             targetPosition = ChessUtilities.BoardPosition(targetPosition);
-
             if (PieceController.currentlySelectedPiece.IsValidMove(targetPosition))
             {
                 TryMovePiece(targetPosition);
@@ -128,19 +128,31 @@ public class InputManager : MonoBehaviour
         Vector3 startingPos = ChessUtilities.BoardPosition(selectedPiece.transform.position);
 
         Debug.Log("Is valid move target " + target + " for " + selectedPiece.gameObject.name);
-        if (!IsValidMove(target, selectedPiece))
-        {
-            Debug.Log("Invalid move attempt.");
-            return;
-        }
+        
+        bool castlingAttempt = HandleCastling(target, selectedPiece);
 
+
+
+        if (!castlingAttempt){
+        if (!IsValidMove(target, selectedPiece))
+            {
+                Debug.Log("Invalid move attempt.");
+                return;
+            }
+        }
         // Process en passant before moving the piece.
         bool isEnPassant = HandleEnPassant(target, selectedPiece);
         bool isCapture = HandleCapture(target, selectedPiece);
-
-        // Move the piece using the BoardManager's API.
-        MovePiece(target, selectedPiece);
-
+        if (!castlingAttempt){
+                // Move the piece using the BoardManager's API.
+                if (selectedPiece.selectedPieceType == PieceController.pieceType.King){
+                    selectedPiece.kingHasMoved = true;
+                }
+                if (selectedPiece.selectedPieceType == PieceController.pieceType.Rook){
+                    selectedPiece.rookHasmoved = true;
+                }
+                MovePiece(target, selectedPiece);
+        }
         // Store last move details for future en passant checks.
         GameManager.Instance.lastMovedPiece = selectedPiece;
         GameManager.Instance.lastMoveStartPos = startingPos;
@@ -150,6 +162,28 @@ public class InputManager : MonoBehaviour
         PieceController.currentlySelectedPiece = null;
 
         GameManager.Instance.EndTurn();
+    }
+
+    private bool HandleCastling(Vector3 target, PieceController piece)
+    {
+        target = ChessUtilities.BoardPosition(target);
+
+       
+        //PieceController targetPiece = BoardManager.Instance.GetPieceAt(target);
+        if (piece.selectedPieceType == PieceController.pieceType.King)
+            {
+                PieceController selectedKing = PieceController.currentlySelectedPiece;
+                
+                if (SpecialMoves.IsCastlingValid(selectedKing, BoardManager.Instance))
+                {
+                 if( SpecialMoves.isCastlingMoveAttempt(selectedKing, BoardManager.Instance,target) ){
+                    SpecialMoves.ExecuteCastling(selectedKing, BoardManager.Instance, target);
+                    // End turn, update game state, etc.
+                    return true;
+                }
+               }
+            }
+        return false;
     }
 
     /// <summary>

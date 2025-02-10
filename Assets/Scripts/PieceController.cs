@@ -6,6 +6,8 @@ using UnityEngine;
 public class PieceController : MonoBehaviour
 {
     public bool isWhite;
+    public bool kingHasMoved = false;
+    public bool rookHasmoved = false;
     public enum pieceType { Pawn, Rook, Knight, Bishop, Queen, King }
     public pieceType selectedPieceType;
 
@@ -303,6 +305,8 @@ public class PieceController : MonoBehaviour
             if (IsValidMove(newPosition))
                 validMoves.Add(newPosition);
         }
+
+
         return validMoves.ToArray();
     }
 
@@ -316,9 +320,16 @@ public class PieceController : MonoBehaviour
             new Vector3(1, 1, 0), new Vector3(-1, 1, 0),
             new Vector3(1, -1, 0), new Vector3(-1, -1, 0)
         };
+
+        if (SpecialMoves.IsCastlingValid(this, BoardManager.Instance))
+        {
+            Debug.Log("Getting Kind Castling moves since castling is valid");
+            kingMoves = kingMoves.Concat(SpecialMoves.GetCastlingMoves(this, BoardManager.Instance)).ToArray();
+        }
+
         Vector3 currentPos = ChessUtilities.BoardPosition(transform.position);
         return kingMoves.Select(move => currentPos + move)
                         .Where(IsValidMove)
                         .ToArray();
-    }
+        }
 }
