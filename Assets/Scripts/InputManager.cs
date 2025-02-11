@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -142,7 +143,11 @@ public class InputManager : MonoBehaviour
         }
         // Process en passant before moving the piece.
         bool isEnPassant = HandleEnPassant(target, selectedPiece);
-        bool isCapture = HandleCapture(target, selectedPiece);
+        
+        //capture piece if valid.
+       PieceController capturedPiece = HandleCapture(target, selectedPiece);
+        
+        
         if (!castlingAttempt){
                 // Move the piece using the BoardManager's API.
                 if (selectedPiece.selectedPieceType == PieceController.pieceType.King){
@@ -156,11 +161,13 @@ public class InputManager : MonoBehaviour
         // Store last move details for future en passant checks.
         GameManager.Instance.lastMovedPiece = selectedPiece;
         GameManager.Instance.lastMoveStartPos = startingPos;
+        GameManager.Instance.AddMove(selectedPiece,startingPos, target,capturedPiece); 
 
         selectedPiece.isSelected = false;
         selectedPiece.Deselect();
-        PieceController.currentlySelectedPiece = null;
 
+        
+        PieceController.currentlySelectedPiece = null;
         GameManager.Instance.EndTurn();
     }
 
@@ -178,7 +185,6 @@ public class InputManager : MonoBehaviour
                 {
                  if( SpecialMoves.isCastlingMoveAttempt(selectedKing, BoardManager.Instance,target) ){
                     SpecialMoves.ExecuteCastling(selectedKing, BoardManager.Instance, target);
-                    // End turn, update game state, etc.
                     return true;
                 }
                }
@@ -201,7 +207,7 @@ public class InputManager : MonoBehaviour
     /// Checks if the move results in a capture.
     /// If so, removes the captured piece from the board.
     /// </summary>
-    private bool HandleCapture(Vector3 target, PieceController piece)
+    private PieceController HandleCapture(Vector3 target, PieceController piece)
     {
         // Standardize the target coordinate.
         target = ChessUtilities.BoardPosition(target);
@@ -211,15 +217,31 @@ public class InputManager : MonoBehaviour
         if (targetPiece != null && targetPiece.isWhite != piece.isWhite)
         {
             Debug.Log("Captured: " + targetPiece.name);
+            Transform parent;
+            if(piece.isWhite){
+             parent = GameObject.Find("WhiteCapturedPieces").transform;
+            }else{
+             parent = GameObject.Find("BackCapturedPieces").transform;
+            }
+            int totalCapturedPieces = parent.childCount;
+            
+            float posX = totalCapturedPieces > 0 ? totalCapturedPieces*0.5f : 0;
+            GameObject capturedP = Instantiate(targetPiece.gameObject, new Vector3(posX,0,-1), Quaternion.identity);
+           
+          
+            capturedP.transform.localScale = new Vector3(0.5f, 0.5f,0.5f);
+            capturedP.transform.SetParent( parent , false);
+            
+
             BoardManager.Instance.RemovePieceAt(target);
             Destroy(targetPiece.gameObject);
-            return true;
+            return capturedP.GetComponent<PieceController>();
         }
         else
         {
             Debug.Log("Capture attempt failed: No enemy piece found at target or position mismatch.");
         }
-        return false;
+        return null;
     }
 
     /// <summary>

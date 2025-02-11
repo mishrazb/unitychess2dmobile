@@ -147,6 +147,9 @@ public static class SpecialMoves
          king.kingHasMoved = true;
          rook.rookHasmoved = true;
 
+         //add additional move record for the castle. king move already captured by inputmanager
+        GameManager.Instance.AddMove(rook,rookStartPos, rookTargetPos,null); 
+
         Debug.Log("Castling executed: " + (isKingside ? "Kingside" : "Queenside"));
         return true;
     }
@@ -208,8 +211,8 @@ public static class SpecialMoves
 
     public static bool isCastlingMoveAttempt(PieceController king, BoardManager boardManager, Vector3 target){
 
-        Vector3 kingsideTarget = king.isWhite ? new Vector3(2, 0, -1) : new Vector3(2, 7, -1);
-        Vector3 queensideTarget = king.isWhite ? new Vector3(-2, 0, -1) : new Vector3(-2, 7, -1);
+        Vector3 kingsideTarget = king.isWhite ? new Vector3(6, 0, -1) : new Vector3(6, 7, -1);
+        Vector3 queensideTarget = king.isWhite ? new Vector3(2, 0, -1) : new Vector3(2,7, -1);
 
 
         if(target!=null){

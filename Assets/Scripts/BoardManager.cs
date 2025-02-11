@@ -100,7 +100,7 @@ public class BoardManager : MonoBehaviour
     {
         newPosition = Standardize(newPosition);
         Vector3 currentPos = Standardize(piece.transform.position);
-
+       
         if (IsOccupied(newPosition))
         {
             Debug.Log($"Position {newPosition} is occupied. Capture logic required.");
