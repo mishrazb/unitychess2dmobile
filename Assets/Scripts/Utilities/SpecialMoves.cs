@@ -148,8 +148,21 @@ public static class SpecialMoves
          rook.rookHasmoved = true;
 
          //add additional move record for the castle. king move already captured by inputmanager
-        GameManager.Instance.AddMove(rook,rookStartPos, rookTargetPos,null); 
-
+           // Create a single move record that captures the entire castling move.
+    MoveRecord castlingRecord = new MoveRecord
+    {
+        MovedPiece = king,
+        StartPosition = kingStartPos,
+        EndPosition = castlingTarget,
+        CapturedPiece = null, // No capture in a castling move.
+        IsCastling = true,
+        CastlingRook = rook,
+        RookStartPosition = rookStartPos,
+        RookEndPosition = rookTargetPos
+    };
+// Add the combined castling move record to the move history.
+    GameManager.Instance.AddMoveRecord(castlingRecord);
+    
         Debug.Log("Castling executed: " + (isKingside ? "Kingside" : "Queenside"));
         return true;
     }
