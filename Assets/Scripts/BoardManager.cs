@@ -57,6 +57,14 @@ public class BoardManager : MonoBehaviour
     /// <summary>
     /// Gets the piece at the standardized board position.
     /// </summary>
+    public IReadOnlyDictionary<Vector3, PieceController> GetOccupiedPositions()
+    {
+        return occupiedPositions;
+    }
+
+    /// <summary>
+    /// Gets the piece at the standardized board position.
+    /// </summary>
     public PieceController GetPieceAt(Vector3 pos)
     {
         pos = Standardize(pos);

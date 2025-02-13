@@ -73,12 +73,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-/!*.*.meta 
-/**.*.meta 
-/*.prefab.meta 
 
 Library/*
-/ProjectSettings/*
 /Assets/Adaptive Performance/*
-/Assets/TextMesh Pro/*
 /Artwork/*
