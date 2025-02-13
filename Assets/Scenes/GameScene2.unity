@@ -1513,6 +1513,8 @@ MonoBehaviour:
   lastMovedPiece: {fileID: 0}
   lastMoveStartPos: {x: 0, y: 0, z: 0}
   turnText: {fileID: 889691942}
+  MaxUndoMoves: 10
+  UndoMoveBtnText: {fileID: 1086051888}
   moveHistory: []
 --- !u!1 &1936523675
 GameObject:

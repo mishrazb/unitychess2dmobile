@@ -116,14 +116,24 @@ public class InputManager : MonoBehaviour
     {
         if (PieceController.currentlySelectedPiece == null)
             return;
-
         PieceController selectedPiece = PieceController.currentlySelectedPiece;
+       
+       
+        if (!GameManager.Instance.IsMoveLegalConsideringCheck(selectedPiece, target))
+            {
+                Debug.Log("Move is illegal: It would leave the king in check.");
+                return;
+            }
+
+
+       
 
         if (!GameManager.Instance.IsCurrentPlayerTurn(selectedPiece.isWhite))
         {
             Debug.Log("Not your turn!");
             return;
         }
+
 
         // Save the starting (pre-move) board position.
         Vector3 startingPos = ChessUtilities.BoardPosition(selectedPiece.transform.position);

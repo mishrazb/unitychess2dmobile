@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -33,6 +34,7 @@ public class GameManager : MonoBehaviour
 
     public int MaxUndoMoves = 10;
     public Text UndoMoveBtnText;
+    public static event Action OnMoveCompleted;
 
 public List<MoveRecord> moveHistory = new List<MoveRecord>();
 
@@ -55,7 +57,11 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
         }else{
             turnText.text = "Black's Turn";
         }
+
+          // Fire the move completed event.
+        OnMoveCompleted?.Invoke();
     }
+   
     public bool IsCurrentPlayerTurn(bool isWhite)
     {
 
@@ -83,7 +89,6 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     {
         if (moveHistory.Count == 0)
         {
-            Debug.Log("No moves to undo.");
             return false;
         }
 
@@ -134,10 +139,103 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
 
         // Optionally, update your UI (captured pieces, move history list, etc.) here.
 
-        Debug.Log("Undo successful.");
-        return true;
+        PieceController king = GetKingFor(!movedPiece.isWhite);
+        if (king != null)
+            {
+                CheckController cc = king.GetComponent<CheckController>();
+                if (cc != null)
+                {
+                    // Option 1: Simply deactivate the indicator.
+                   // cc.DeactivateIndicator();
+                    Debug.Log("Update indicator");
+                    // Option 2: Alternatively, you can call the update method to re-check the state:
+                     cc.UpdateCheckIndicator();
+                }
+            }
+
+    // Optionally update UI here.
+    Debug.Log("Undo successful.");
+    return true;
     }
    
+
+    public bool IsMoveLegalConsideringCheck(PieceController movingPiece, Vector3 target)
+{
+    // Save original board position of the moving piece.
+    Vector3 originalPos = ChessUtilities.BoardPosition(movingPiece.transform.position);
+    target = ChessUtilities.BoardPosition(target);
+    
+    // Save a reference to any piece currently at the target square.
+    PieceController capturedPiece = null;
+    if (BoardManager.Instance.IsOccupied(target))
+    {
+        capturedPiece = BoardManager.Instance.GetPieceAt(target);
+    }
+    
+    // --- Simulate the move ---
+    // 1. Remove the moving piece from its original position.
+    BoardManager.Instance.RemovePieceAt(originalPos);
+    
+    // 2. If there's a captured piece, remove it from the board.
+    if (capturedPiece != null)
+    {
+        BoardManager.Instance.RemovePieceAt(target);
+        // Temporarily disable its GameObject.
+        capturedPiece.gameObject.SetActive(false);
+    }
+    
+    // 3. Place the moving piece at the target.
+    movingPiece.transform.position = target;
+    BoardManager.Instance.AddPiece(target, movingPiece);
+    
+    // --- Check for check ---
+    // Find your king (you can have a helper method that returns the king for a given color).
+    PieceController king = GetKingFor(movingPiece.isWhite);
+    bool moveLeavesKingInCheck = false;
+    if (king != null)
+    {
+        // Assume CheckScript has been modified to provide a public method IsInCheck().
+         CheckController cc = king.GetComponent<CheckController>();
+        if (cc != null)
+        {
+            moveLeavesKingInCheck = cc.IsInCheck();
+        }
+    }
+    
+    // --- Revert the simulated move ---
+    // Remove the moving piece from the target.
+    BoardManager.Instance.RemovePieceAt(target);
+    movingPiece.transform.position = originalPos;
+    BoardManager.Instance.AddPiece(originalPos, movingPiece);
+    
+    // If a piece was captured, restore it.
+    if (capturedPiece != null)
+    {
+        capturedPiece.gameObject.SetActive(true);
+        BoardManager.Instance.AddPiece(target, capturedPiece);
+    }
+    
+    // If the simulated move left the king in check, then the move is illegal.
+    return !moveLeavesKingInCheck;
+}
+
+/// <summary>
+/// Helper method that finds and returns the king for the given color.
+/// Assumes that kings are tagged appropriately or identifiable by their PieceType.
+/// </summary>
+private PieceController GetKingFor(bool isWhite)
+{
+    foreach (KeyValuePair<Vector3, PieceController> kvp in BoardManager.Instance.GetOccupiedPositions())
+    {
+        PieceController piece = kvp.Value;
+        if (piece.isWhite == isWhite && piece.selectedPieceType == PieceController.pieceType.King)
+        {
+            return piece;
+        }
+    }
+    return null;
+}
+
 
 }
 

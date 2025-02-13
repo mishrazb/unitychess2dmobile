@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1799695337220746161}
   - component: {fileID: 6899414416279918126}
   - component: {fileID: 3487093479564915054}
+  - component: {fileID: 8654585255530375808}
   m_Layer: 6
   m_Name: b-king
   m_TagString: Pieces
@@ -120,9 +121,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isWhite: 0
+  kingHasMoved: 0
+  rookHasmoved: 0
   selectedPieceType: 5
   highlightSelectedPiece: {fileID: 5674089397121736908, guid: 2621270614ef70d4884367d1d0bc7eaf, type: 3}
   highlightValidMoves: {fileID: 8959170116430859158, guid: 895496618117b7445808c9d8ac988d38, type: 3}
   validMoveIndicators: []
   isSelected: 0
-  piecePlacement: {fileID: 0}
+--- !u!114 &8654585255530375808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4693576580125088435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 684f0efe1b21a074a96d4f1bfec92f2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  checkIndicatorPrefab: {fileID: 4651510876976123272, guid: bb779a0e6f7b66942a8808a92f5a6464, type: 3}

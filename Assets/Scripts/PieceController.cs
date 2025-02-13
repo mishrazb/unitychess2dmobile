@@ -95,7 +95,7 @@ public class PieceController : MonoBehaviour
             Vector3 mmove = move;
             mmove.z = ChessUtilities.BoardPosition(transform.position).z;
 
-            if (IsValidMove(mmove))
+            if (IsValidMove(mmove) && GameManager.Instance.IsMoveLegalConsideringCheck(this, mmove)  )
             {
                 GameObject validMove = Instantiate(highlightValidMoves, mmove, Quaternion.identity);
                 validMove.transform.position = mmove;
@@ -188,21 +188,19 @@ public class PieceController : MonoBehaviour
 
         if (!BoardManager.Instance.IsOccupied(forwardMove))
         {
-            Debug.Log($"{name}: Adding Single Forward Move {forwardMove}");
             moves.Add(forwardMove);
 
             Vector3 doubleForwardMove = currentPos + new Vector3(0, direction * 2, 0);
             bool isAtStartingRank = (isWhite && currentPos.y == 1) || (!isWhite && currentPos.y == 6);
             if (isAtStartingRank && !BoardManager.Instance.IsOccupied(doubleForwardMove))
             {
-                Debug.Log($"{name}: Adding Double Forward Move {doubleForwardMove}");
                 moves.Add(doubleForwardMove);
             }
         }
-        else
+        /*else
         {
-            Debug.Log($"{name}: Forward Move Blocked at {forwardMove}");
-        }
+
+        }*/
     }
 
     private void AddDiagonalCaptures(List<Vector3> moves, int direction)
@@ -249,7 +247,7 @@ public class PieceController : MonoBehaviour
                 Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
             {
                 Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, currentPos.y + direction, currentPos.z);
-                Debug.Log($"En Passant Move Detected for {name} at {enPassantTarget}");
+               // Debug.Log($"En Passant Move Detected for {name} at {enPassantTarget}");
                 if (!BoardManager.Instance.IsOccupied(enPassantTarget))
                 {
                     moves.Add(enPassantTarget);
@@ -323,7 +321,7 @@ public class PieceController : MonoBehaviour
 
         if (SpecialMoves.IsCastlingValid(this, BoardManager.Instance))
         {
-            Debug.Log("Getting Kind Castling moves since castling is valid");
+           // Debug.Log("Getting Kind Castling moves since castling is valid");
             kingMoves = kingMoves.Concat(SpecialMoves.GetCastlingMoves(this, BoardManager.Instance)).ToArray();
         }
 
@@ -332,4 +330,7 @@ public class PieceController : MonoBehaviour
                         .Where(IsValidMove)
                         .ToArray();
         }
+
+
+        
 }
