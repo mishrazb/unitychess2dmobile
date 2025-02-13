@@ -30,11 +30,14 @@ public class GameManager : MonoBehaviour
     public bool isWhiteTurn = true;
     public PieceController lastMovedPiece; // 🔥 Track last moved piece
     public Vector3 lastMoveStartPos; // 🔥 Track its starting position
+
+        // Reference to the Game Over UI panel (assign via Inspector).
     public Text turnText;
 
     public int MaxUndoMoves = 10;
     public Text UndoMoveBtnText;
     public static event Action OnMoveCompleted;
+    public GameOver gameOver;
 
 public List<MoveRecord> moveHistory = new List<MoveRecord>();
 
@@ -46,20 +49,39 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
             Instance = this;
         else
             Destroy(gameObject);
+
+      gameOver = gameOver.gameObject.GetComponent<GameOver>();
+      //  gameOver.gameObject.SetActive(false);
+
     }
     public void EndTurn()
     {   
 
-        isWhiteTurn = !isWhiteTurn;
+       // Toggle the turn.
+    isWhiteTurn = !isWhiteTurn;
 
-        if(isWhiteTurn){
-            turnText.text = "White's Turn";
-        }else{
-            turnText.text = "Black's Turn";
-        }
+    // Update turn UI.
+    if (isWhiteTurn)
+    {
+        turnText.text = "White's Turn";
+    }
+    else
+    {
+        turnText.text = "Black's Turn";
+    }
 
-          // Fire the move completed event.
-        OnMoveCompleted?.Invoke();
+    // Fire the move completed event so that other systems (e.g., CheckControllers) update.
+    OnMoveCompleted?.Invoke();
+    Debug.Log("Is checkmate " + gameOver.CheckForCheckmate());
+    // Check for checkmate using the GameOver script.
+    if (gameOver.CheckForCheckmate())
+    {   
+       
+        // If checkmate, determine the winner.
+        string winner = isWhiteTurn ? "Black" : "White";
+        gameOver.TriggerGameOver($"{winner} wins by Checkmate!");
+    }
+
     }
    
     public bool IsCurrentPlayerTurn(bool isWhite)
@@ -138,18 +160,17 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
         isWhiteTurn = !isWhiteTurn;
 
         // Optionally, update your UI (captured pieces, move history list, etc.) here.
-
-        PieceController king = GetKingFor(!movedPiece.isWhite);
+        PieceController king = CheckController.GetKingFor(!movedPiece.isWhite);
         if (king != null)
             {
-                CheckController cc = king.GetComponent<CheckController>();
-                if (cc != null)
+               
+                if (king.GetComponent<CheckController>() != null)
                 {
                     // Option 1: Simply deactivate the indicator.
                    // cc.DeactivateIndicator();
                     Debug.Log("Update indicator");
                     // Option 2: Alternatively, you can call the update method to re-check the state:
-                     cc.UpdateCheckIndicator();
+                     king.GetComponent<CheckController>().UpdateCheckIndicator();
                 }
             }
 
@@ -190,7 +211,7 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     
     // --- Check for check ---
     // Find your king (you can have a helper method that returns the king for a given color).
-    PieceController king = GetKingFor(movingPiece.isWhite);
+    PieceController king = CheckController.GetKingFor(movingPiece.isWhite);
     bool moveLeavesKingInCheck = false;
     if (king != null)
     {
@@ -219,22 +240,9 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     return !moveLeavesKingInCheck;
 }
 
-/// <summary>
-/// Helper method that finds and returns the king for the given color.
-/// Assumes that kings are tagged appropriately or identifiable by their PieceType.
-/// </summary>
-private PieceController GetKingFor(bool isWhite)
-{
-    foreach (KeyValuePair<Vector3, PieceController> kvp in BoardManager.Instance.GetOccupiedPositions())
-    {
-        PieceController piece = kvp.Value;
-        if (piece.isWhite == isWhite && piece.selectedPieceType == PieceController.pieceType.King)
-        {
-            return piece;
-        }
-    }
-    return null;
-}
+
+
+
 
 
 }

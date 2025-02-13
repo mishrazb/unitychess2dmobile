@@ -56,13 +56,8 @@ public class InputManager : MonoBehaviour
                         Vector3 target = ChessUtilities.BoardPosition(clickedPiece.transform.position);
                         if (PieceController.currentlySelectedPiece.IsValidMove(target))
                         {
-                            Debug.Log("Attempting capture move to " + target);
                             // Use the cached pieceMovement from BoardManager instead of GetComponent.
                             OnTargetTileClicked(target);
-                        }
-                        else
-                        {
-                            Debug.Log("Enemy piece is not on a valid move square for capture.");
                         }
                     }
                     // If a friendly piece is clicked, change selection.
@@ -137,10 +132,11 @@ public class InputManager : MonoBehaviour
 
         // Save the starting (pre-move) board position.
         Vector3 startingPos = ChessUtilities.BoardPosition(selectedPiece.transform.position);
-
-        Debug.Log("Is valid move target " + target + " for " + selectedPiece.gameObject.name);
+        bool castlingAttempt = false;
+        if( !CheckController.Instance.IsInCheck() ){
+           castlingAttempt = HandleCastling(target, selectedPiece);
+        }
         
-        bool castlingAttempt = HandleCastling(target, selectedPiece);
         if (!castlingAttempt){
             if (!IsValidMove(target, selectedPiece))
                 {
@@ -212,14 +208,14 @@ public class InputManager : MonoBehaviour
 
         
         PieceController.currentlySelectedPiece = null;
-        Debug.Log("ENDING TURN");
+
                 GameManager.Instance.EndTurn();
     }
 
     private bool HandleCastling(Vector3 target, PieceController piece)
     {
         target = ChessUtilities.BoardPosition(target);
-
+        
        
         //PieceController targetPiece = BoardManager.Instance.GetPieceAt(target);
         if (piece.selectedPieceType == PieceController.pieceType.King)
@@ -265,10 +261,6 @@ public class InputManager : MonoBehaviour
             //Destroy(targetPiece.gameObject);
             targetPiece.gameObject.SetActive(false);
             return targetPiece.GetComponent<PieceController>();
-        }
-        else
-        {
-            Debug.Log("Capture attempt failed: No enemy piece found at target or position mismatch.");
         }
         return null;
     }

@@ -132,6 +132,8 @@ public class PieceController : MonoBehaviour
     /// </summary>
     public Vector3[] GetValidMoves()
     {
+       //this is being called for all pieces at all times regardless of which piece is selected
+       // Debug.Log("SELECTED PIECE TYPE " + selectedPieceType);
         return selectedPieceType switch
         {
             pieceType.Pawn => GetPawnMoves(),
@@ -312,6 +314,7 @@ public class PieceController : MonoBehaviour
 
     private Vector3[] GetKingMoves()
     {
+        
         Vector3[] kingMoves = {
             new Vector3(1, 0, 0), new Vector3(-1, 0, 0),
             new Vector3(0, 1, 0), new Vector3(0, -1, 0),
