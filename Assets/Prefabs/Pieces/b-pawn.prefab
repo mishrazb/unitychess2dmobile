@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7209595485203746601}
   - component: {fileID: 22789245241073493}
   - component: {fileID: 2730432352464611649}
+  - component: {fileID: 9050251091592282647}
   m_Layer: 6
   m_Name: b-pawn
   m_TagString: Pieces
@@ -120,9 +121,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isWhite: 0
+  kingHasMoved: 0
+  rookHasmoved: 0
   selectedPieceType: 0
   highlightSelectedPiece: {fileID: 5674089397121736908, guid: 2621270614ef70d4884367d1d0bc7eaf, type: 3}
   highlightValidMoves: {fileID: 8959170116430859158, guid: 895496618117b7445808c9d8ac988d38, type: 3}
   validMoveIndicators: []
   isSelected: 0
-  piecePlacement: {fileID: 0}
+  cachedValidMoves: []
+--- !u!114 &9050251091592282647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2392785769638851534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 673d83259813cfc41a5c55bf3e8b8ae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  promotionUIPanel: {fileID: 6440457986872972320, guid: c5c2d2f6cad17114f8d0e0061b2c15d6, type: 3}
+  whiteQueenPrefab: {fileID: 0}
+  whiteRookPrefab: {fileID: 0}
+  whiteKnightPrefab: {fileID: 0}
+  whiteBishopPrefab: {fileID: 0}
+  blackQueenPrefab: {fileID: 3515128362262936837, guid: 673171e4a5666604da2cce8454819825, type: 3}
+  blackRookPrefab: {fileID: 6921543905010293446, guid: d5da426e9c597a0489ba7c9e4906b602, type: 3}
+  blackKnightPrefab: {fileID: 8318200899740349235, guid: 356935fb0374fc441a78dc6193fe1c19, type: 3}
+  blackBishopPrefab: {fileID: 138526475489352158, guid: 7ecabf2fb704922448c79a6c9af1cdec, type: 3}

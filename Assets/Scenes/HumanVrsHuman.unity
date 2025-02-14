@@ -2813,11 +2813,12 @@ MonoBehaviour:
   isWhiteTurn: 1
   lastMovedPiece: {fileID: 0}
   lastMoveStartPos: {x: 0, y: 0, z: 0}
-  turnText: {fileID: 889691942}
+  HighlightPreviousMoveTilePrefab: {fileID: 0}
+  HighlightPreviousMovePiecePrefab: {fileID: 0}
   MaxUndoMoves: 10
   UndoMoveBtnText: {fileID: 1086051888}
   gameOver: {fileID: 2041984965}
-  currentReviewIndex: -1
+  turnText: {fileID: 889691942}
   MovesText: {fileID: 1318180242}
   moveHistory: []
 --- !u!1 &1919720050

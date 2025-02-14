@@ -207,12 +207,32 @@ public class InputManager : MonoBehaviour
        selectedPiece.Deselect();
 
         
+        // (Optional) If the moved piece is a pawn, check for promotion.
+            if (selectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+            {
+                CheckPromotionForSelectedPiece();
+            }
+
         PieceController.currentlySelectedPiece = null;
         GameManager.Instance.EndTurn();
         GameManager.Instance.HighlightLastMove(startingPos, selectedPiece);
     }
 
-   
+   /// <summary>
+/// Checks if the currently moved piece is a pawn and, if so, triggers its promotion check.
+/// </summary>
+public void CheckPromotionForSelectedPiece()
+{
+    if (PieceController.currentlySelectedPiece != null &&
+        PieceController.currentlySelectedPiece.selectedPieceType == PieceController.pieceType.Pawn)
+    {
+        PromotionHandler promotionHandler = PieceController.currentlySelectedPiece.GetComponent<PromotionHandler>();
+        if (promotionHandler != null)
+        {
+            promotionHandler.CheckPromotion();
+        }
+    }
+}
 
     private bool HandleCastling(Vector3 target, PieceController piece)
     {
