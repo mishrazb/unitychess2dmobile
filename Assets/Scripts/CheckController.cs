@@ -91,7 +91,7 @@ public class CheckController : MonoBehaviour
             // Only consider enemy pieces.
             if (enemyPiece.isWhite != kingPiece.isWhite)
             {
-                Vector3[] enemyMoves = enemyPiece.GetValidMoves();
+                Vector3[] enemyMoves = enemyPiece.GetValidMovesForCheck();
                 foreach (Vector3 move in enemyMoves)
                 {
                     if (ChessUtilities.BoardPosition(move) == kingPos)
@@ -126,10 +126,8 @@ public class CheckController : MonoBehaviour
         // If the king isn't in check, then it's not checkmate.
        if (!IsInCheck())
         {
-              Debug.Log("NOT IN CHECK");
             return false;
        }
-        Debug.Log("Is IN CHECK RETURNED FALSE MOVING ON");
         // Retrieve all friendly pieces from the board.
         List<PieceController> friendlyPieces = new List<PieceController>();
         foreach (KeyValuePair<Vector3, PieceController> kvp in BoardManager.Instance.GetOccupiedPositions())

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameUI : MonoBehaviour
 {
@@ -33,6 +34,15 @@ public class GameUI : MonoBehaviour
         }
     }
     public void OnRestartGame(){
-        Debug.Log("Restart Game");
+       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    } 
+    public void OnGameReview(){
+       Debug.Log("game review board");
+    } 
+     public void PreviusMove(){
+       Debug.Log("Previous move");
+    } 
+    public void NextMove(){
+       Debug.Log("Next move");
     } 
 }

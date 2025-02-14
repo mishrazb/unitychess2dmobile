@@ -54,13 +54,8 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
       //  gameOver.gameObject.SetActive(false);
 
     }
-    public void EndTurn()
-    {   
-
-       // Toggle the turn.
-    isWhiteTurn = !isWhiteTurn;
-
-    // Update turn UI.
+    public void UpdateTurnUI(){
+// Update turn UI.
     if (isWhiteTurn)
     {
         turnText.text = "White's Turn";
@@ -69,14 +64,21 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     {
         turnText.text = "Black's Turn";
     }
+    }
+    public void EndTurn()
+    {   
+
+       // Toggle the turn.
+    isWhiteTurn = !isWhiteTurn;
+
+    
 
     // Fire the move completed event so that other systems (e.g., CheckControllers) update.
     OnMoveCompleted?.Invoke();
-    Debug.Log("Is checkmate " + gameOver.CheckForCheckmate());
+
     // Check for checkmate using the GameOver script.
     if (gameOver.CheckForCheckmate())
     {   
-       
         // If checkmate, determine the winner.
         string winner = isWhiteTurn ? "Black" : "White";
         gameOver.TriggerGameOver($"{winner} wins by Checkmate!");
@@ -166,15 +168,12 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
                
                 if (king.GetComponent<CheckController>() != null)
                 {
-                    // Option 1: Simply deactivate the indicator.
-                   // cc.DeactivateIndicator();
-                    Debug.Log("Update indicator");
-                    // Option 2: Alternatively, you can call the update method to re-check the state:
                      king.GetComponent<CheckController>().UpdateCheckIndicator();
                 }
             }
 
     // Optionally update UI here.
+    UpdateTurnUI();
     Debug.Log("Undo successful.");
     return true;
     }
