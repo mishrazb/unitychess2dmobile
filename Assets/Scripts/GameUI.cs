@@ -3,7 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class GameUI : MonoBehaviour
 {
-
+    public GameObject gameOver;
+    public GameObject GamePlayNav;
+    public GameObject GameReviewNav;
     // Start is called before the first frame update
     public void OnPauseGame(){
         Debug.Log("Pause Game");
@@ -37,12 +39,15 @@ public class GameUI : MonoBehaviour
        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     } 
     public void OnGameReview(){
-       Debug.Log("game review board");
+       gameOver.SetActive(false);
+       GamePlayNav.SetActive(false);
+       GameReviewNav.SetActive(true);
+        GameManager.Instance.InitializeReview();
     } 
      public void PreviusMove(){
-       Debug.Log("Previous move");
+       GameManager.Instance.ReviewPreviousMove();
     } 
     public void NextMove(){
-       Debug.Log("Next move");
+       GameManager.Instance.ReviewNextMove();
     } 
 }

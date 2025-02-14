@@ -204,13 +204,15 @@ public class InputManager : MonoBehaviour
      
 
         selectedPiece.isSelected = false;
-        selectedPiece.Deselect();
+       selectedPiece.Deselect();
 
         
         PieceController.currentlySelectedPiece = null;
-
-                GameManager.Instance.EndTurn();
+        GameManager.Instance.EndTurn();
+        GameManager.Instance.HighlightLastMove(startingPos, selectedPiece);
     }
+
+   
 
     private bool HandleCastling(Vector3 target, PieceController piece)
     {
