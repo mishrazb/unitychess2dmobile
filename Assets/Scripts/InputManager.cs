@@ -151,8 +151,9 @@ public class InputManager : MonoBehaviour
         capturedPiece = HandleCapture(target, selectedPiece);
 
          // Process en passant before moving the piece.
-         if(capturedPiece == null)
-             capturedPiece = HandleEnPassant(target, selectedPiece);
+         if(capturedPiece == null){
+           capturedPiece = EnPassantHandler.HandleEnPassantCapture(PieceController.currentlySelectedPiece, target);
+        }
         #endregion
 
         if (!castlingAttempt){
@@ -287,44 +288,7 @@ public void CheckPromotionForSelectedPiece()
         return null;
     }
 
-    /// <summary>
-    /// Processes an en passant move if the conditions are met.
-    /// Uses the stored last move data to determine if an adjacent enemy pawn moved two squares.
-    /// </summary>
-    private PieceController HandleEnPassant(Vector3 target, PieceController piece)
-    {
-        target = ChessUtilities.BoardPosition(target);
-        if (piece.selectedPieceType != PieceController.pieceType.Pawn)
-            return null;
 
-        if (GameManager.Instance.lastMovedPiece != null &&
-            GameManager.Instance.lastMovedPiece.selectedPieceType == PieceController.pieceType.Pawn)
-        {
-            Vector3 lastMoveStart = ChessUtilities.BoardPosition(GameManager.Instance.lastMoveStartPos);
-            Vector3 lastMoveEnd = ChessUtilities.BoardPosition(GameManager.Instance.lastMovedPiece.transform.position);
-            Vector3 currentPos = ChessUtilities.BoardPosition(piece.transform.position);
-
-            // Validate that the enemy pawn moved two squares, is on the same rank as our pawn,
-            // and is horizontally adjacent.
-            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
-                lastMoveEnd.y == currentPos.y &&
-                Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
-            {
-                // Determine the captured pawn's board position.
-                Vector3 capturedPawnPosition = new Vector3(lastMoveEnd.x, lastMoveEnd.y, -1);
-
-                PieceController capturedPawn = BoardManager.Instance.GetPieceAt(capturedPawnPosition);
-                if (capturedPawn != null && capturedPawn.selectedPieceType == PieceController.pieceType.Pawn)
-                {
-                    Debug.Log($"Captured via En Passant: {capturedPawn.name} at {capturedPawnPosition}");
-                    BoardManager.Instance.RemovePieceAt(capturedPawnPosition);
-                    capturedPawn.gameObject.SetActive(false);
-                    return capturedPawn;
-                }
-            }
-        }
-        return null;
-    }
 
     /// <summary>
     /// Moves the piece to the target position using the BoardManager's API.

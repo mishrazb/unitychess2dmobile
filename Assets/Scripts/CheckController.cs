@@ -80,7 +80,6 @@ public class CheckController : MonoBehaviour
     /// <returns>True if the king is in check, false otherwise.</returns>
     public bool IsInCheck()
     {
-        
         // Standardize the king's position.
         Vector3 kingPos = ChessUtilities.BoardPosition(transform.position);
 
@@ -91,6 +90,7 @@ public class CheckController : MonoBehaviour
             // Only consider enemy pieces.
             if (enemyPiece.isWhite != kingPiece.isWhite)
             {
+                // Use GetValidMovesForCheck so that we compute valid moves regardless of selection.
                 Vector3[] enemyMoves = enemyPiece.GetValidMovesForCheck();
                 foreach (Vector3 move in enemyMoves)
                 {
@@ -98,7 +98,6 @@ public class CheckController : MonoBehaviour
                     {
                         Debug.Log("Checking check true");
                         return true;
-                        
                     }
                 }
             }
@@ -124,10 +123,11 @@ public class CheckController : MonoBehaviour
     public bool IsCheckMate()
     {
         // If the king isn't in check, then it's not checkmate.
-       if (!IsInCheck())
+        if (!IsInCheck())
         {
             return false;
-       }
+        }
+
         // Retrieve all friendly pieces from the board.
         List<PieceController> friendlyPieces = new List<PieceController>();
         foreach (KeyValuePair<Vector3, PieceController> kvp in BoardManager.Instance.GetOccupiedPositions())
@@ -142,7 +142,8 @@ public class CheckController : MonoBehaviour
         // For each friendly piece, check if any valid move will not leave the king in check.
         foreach (PieceController piece in friendlyPieces)
         {
-            Vector3[] validMoves = piece.GetValidMoves();
+            // Use GetValidMovesForCheck() so that we compute valid moves even if the piece isn't selected.
+            Vector3[] validMoves = piece.GetValidMovesForCheck();
             foreach (Vector3 move in validMoves)
             {
                 // Use GameManager's simulation method to test the move.
