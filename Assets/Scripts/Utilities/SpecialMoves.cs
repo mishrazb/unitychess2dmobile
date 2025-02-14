@@ -22,7 +22,7 @@ public static class SpecialMoves
         Vector3 kingStartPos = king.isWhite ? new Vector3(4, 0, -1) : new Vector3(4, 7, -1);
         if (kingPos != kingStartPos)
         {
-            Debug.Log("King is not in its starting position; castling not allowed.");
+            //Debug.Log("King is not in its starting position; castling not allowed.");
             return false;
         }
 
@@ -48,7 +48,7 @@ public static class SpecialMoves
             if (!boardManager.IsOccupied(square1) && !boardManager.IsOccupied(square2))
             {
                 kingsideValid = true;
-                Debug.Log("Castling on kingside is valid, spawn valid highlights");
+                //Debug.Log("Castling on kingside is valid, spawn valid highlights");
             }
         }
 
@@ -68,18 +68,18 @@ public static class SpecialMoves
             if (!boardManager.IsOccupied(sq1) && !boardManager.IsOccupied(sq2) && !boardManager.IsOccupied(sq3))
             {
                 queensideValid = true;
-                Debug.Log("Castling on queenside is valid, spawn valid highlights");
+               // Debug.Log("Castling on queenside is valid, spawn valid highlights");
             }
         }
 
         // You can choose to return true if at least one side is valid.
         if (kingsideValid || queensideValid)
         {
-            Debug.Log($"Castling valid: Kingside = {kingsideValid}, Queenside = {queensideValid}");
+           // Debug.Log($"Castling valid: Kingside = {kingsideValid}, Queenside = {queensideValid}");
             return true;
         }
 
-        Debug.Log("Castling conditions not met.");
+
         return false;
     }
 
@@ -127,7 +127,7 @@ public static class SpecialMoves
         PieceController rook = boardManager.GetPieceAt(rookStartPos);
         if (rook == null)
         {
-            Debug.LogError("Castling failed: Rook not found at " + rookStartPos);
+            //Debug.LogError("Castling failed: Rook not found at " + rookStartPos);
             return false;
         }
 
@@ -163,7 +163,7 @@ public static class SpecialMoves
 // Add the combined castling move record to the move history.
     GameManager.Instance.AddMoveRecord(castlingRecord);
     
-        Debug.Log("Castling executed: " + (isKingside ? "Kingside" : "Queenside"));
+       // Debug.Log("Castling executed: " + (isKingside ? "Kingside" : "Queenside"));
         return true;
     }
 /// <summary>
@@ -195,7 +195,7 @@ public static class SpecialMoves
             {
                 // The king normally moves two squares toward the rook.
                 Vector3 kingsideTarget = king.isWhite ? new Vector3(2, 0, -1) : new Vector3(2, 0, -1);
-               Debug.Log("Additional castling move " + kingsideTarget);
+              // Debug.Log("Additional castling move " + kingsideTarget);
                 castlingMoves.Add(kingsideTarget);
             }
         }
@@ -214,7 +214,7 @@ public static class SpecialMoves
                 // The king typically moves two squares toward the queenside rook.
               
                 Vector3 queensideTarget = king.isWhite ? new Vector3(-2, 0, -1) : new Vector3(-2, 0, -1);
-                  Debug.Log("Additional castling move " + queensideTarget);
+                 // Debug.Log("Additional castling move " + queensideTarget);
                 castlingMoves.Add(queensideTarget);
             }
         }

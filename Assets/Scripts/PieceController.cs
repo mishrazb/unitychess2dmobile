@@ -17,18 +17,15 @@ public class PieceController : MonoBehaviour
     private GameObject goHighlight;
     public static PieceController currentlySelectedPiece = null;
     public List<GameObject> validMoveIndicators = new List<GameObject>();
-    public bool isSelected = false;
+        public bool isSelected = false;
 
+    [SerializeField]    
+    private Vector3[] cachedValidMoves;
+    private bool movesCached = false;
     // We no longer need to reference PiecePlacement for board occupancy,
     // since BoardManager is now the central authority.
     // private PiecePlacement piecePlacement;
 
-    private void Start()
-    {
-        // (Optional) If needed for other purposes, you may still retrieve PiecePlacement.
-        // piecePlacement = FindObjectOfType<PiecePlacement>();
-        // Otherwise, board state will be accessed via BoardManager.Instance.
-    }
 
     /// <summary>
     /// Called when this piece is clicked.
@@ -80,6 +77,11 @@ public class PieceController : MonoBehaviour
             Destroy(outline);
         }
         validMoveIndicators.Clear();
+
+        // Clear the cached valid moves.
+        cachedValidMoves = null;
+        movesCached = false;
+
     }
 
     /// <summary>
@@ -132,7 +134,19 @@ public class PieceController : MonoBehaviour
     /// </summary>
     public Vector3[] GetValidMoves()
     {
-        return selectedPieceType switch
+       // Only compute valid moves if this piece is the currently selected piece.
+            if (PieceController.currentlySelectedPiece != this)
+            {
+                return new Vector3[0];
+            }
+
+            if (movesCached)
+            {
+                return cachedValidMoves;
+            }
+
+
+         cachedValidMoves = selectedPieceType switch
         {
             pieceType.Pawn => GetPawnMoves(),
             pieceType.Rook => GetRookMoves(),
@@ -142,8 +156,24 @@ public class PieceController : MonoBehaviour
             pieceType.King => GetKingMoves(),
             _ => new Vector3[0],
         };
-    }
 
+         movesCached = true;
+        return cachedValidMoves;
+    }
+// This method is used for check detection. It computes the valid moves regardless of selection.
+public Vector3[] GetValidMovesForCheck()
+{
+    return selectedPieceType switch
+    {
+        pieceType.Pawn => GetPawnMoves(),
+        pieceType.Rook => GetRookMoves(),
+        pieceType.Knight => GetKnightMoves(),
+        pieceType.Bishop => GetBishopMoves(),
+        pieceType.Queen => GetQueenMoves(),
+        pieceType.King => GetKingMoves(),
+        _ => new Vector3[0],
+    };
+}
     private Vector3[] GetRookMoves()
     {
         List<Vector3> moves = new List<Vector3>();
@@ -312,6 +342,7 @@ public class PieceController : MonoBehaviour
 
     private Vector3[] GetKingMoves()
     {
+        
         Vector3[] kingMoves = {
             new Vector3(1, 0, 0), new Vector3(-1, 0, 0),
             new Vector3(0, 1, 0), new Vector3(0, -1, 0),

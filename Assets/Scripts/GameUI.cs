@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameUI : MonoBehaviour
 {
-
+    public GameObject gameOver;
+    public GameObject GamePlayNav;
+    public GameObject GameReviewNav;
     // Start is called before the first frame update
     public void OnPauseGame(){
         Debug.Log("Pause Game");
@@ -33,6 +36,18 @@ public class GameUI : MonoBehaviour
         }
     }
     public void OnRestartGame(){
-        Debug.Log("Restart Game");
+       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    } 
+    public void OnGameReview(){
+       gameOver.SetActive(false);
+       GamePlayNav.SetActive(false);
+       GameReviewNav.SetActive(true);
+        GameManager.Instance.InitializeReview();
+    } 
+     public void PreviusMove(){
+       GameManager.Instance.ReviewPreviousMove();
+    } 
+    public void NextMove(){
+       GameManager.Instance.ReviewNextMove();
     } 
 }
