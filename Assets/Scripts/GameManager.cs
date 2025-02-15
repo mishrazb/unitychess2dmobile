@@ -36,7 +36,10 @@ public class GameManager : MonoBehaviour
     public PieceController lastMovedPiece; // 🔥 Track last moved piece
     public Vector3 lastMoveStartPos; // 🔥 Track its starting position
     public GameObject HighlightPreviousMoveTilePrefab;
+    private GameObject highlightPreviousMoveTileInstance;
     public GameObject HighlightPreviousMovePiecePrefab;
+    
+    private GameObject highlightPreviousMovePieceInstance;
         // Reference to the Game Over UI panel (assign via Inspector).
   
 
@@ -53,7 +56,9 @@ public class GameManager : MonoBehaviour
    public Text turnText;
     private int totalMoves=0;
     public Text MovesText;
-      private String WinningPlayer;
+    private String WinningPlayer;
+
+
 
 public List<MoveRecord> moveHistory = new List<MoveRecord>();
 
@@ -73,11 +78,28 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     }
     public void HighlightLastMove(Vector3 start, PieceController lastpiece)
     {
-        Debug.Log("highlight previous move");
+        HighightPreviousMove(start, lastpiece);
     }
-    private void ClearPreviousMoveHighight(Vector3 start, PieceController lastpiece)
-    {
-        Debug.Log("highlight previous move");
+    private void HighightPreviousMove(Vector3 start, PieceController lastpiece)
+    {   
+       //first check if a previous tile and piece highlight exists if it does, clear it before recrating it on the new piece and tile.
+        if(highlightPreviousMovePieceInstance!=null){
+            Destroy(highlightPreviousMovePieceInstance);
+        }
+        if(highlightPreviousMoveTileInstance!=null){
+            Destroy(highlightPreviousMoveTileInstance);
+        }
+
+    highlightPreviousMovePieceInstance  = Instantiate(HighlightPreviousMovePiecePrefab,Vector3.zero, Quaternion.identity);
+    highlightPreviousMovePieceInstance.transform.SetParent(lastpiece.transform, false);
+
+    highlightPreviousMoveTileInstance  = Instantiate(HighlightPreviousMoveTilePrefab,start, Quaternion.identity);
+    highlightPreviousMoveTileInstance.transform.SetParent(GameObject.Find("BoardTiles").transform, false);
+        
+        
+
+
+
     }
 
     public void UpdateTurnUI(){
@@ -139,82 +161,6 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     {
         moveHistory.Add(record);
     }
-    /// <summary>
-    /// Undoes the last move.
-    /// Returns true if the undo was successful, false otherwise.
-    /// </summary>
-    /// 
-   /*
-    public bool UndoLastMove()
-    {
-        if (moveHistory.Count == 0)
-        {
-            return false;
-        }
-
-        // Retrieve the last move record.
-        MoveRecord lastMove = moveHistory[moveHistory.Count - 1];
-
-        // Reverse the move of the piece.
-        PieceController movedPiece = lastMove.MovedPiece;
-        Vector3 startPos = lastMove.StartPosition;
-        Vector3 endPos = lastMove.EndPosition;
-
-        // Update the board state: remove the piece from its current (end) position,
-        // and place it back at its start.
-        BoardManager.Instance.UpdatePiecePosition(endPos, startPos, movedPiece);
-        movedPiece.transform.position = startPos;
-
-        // If a piece was captured, restore it.
-        if (lastMove.CapturedPiece != null)
-        {
-            PieceController capturedPiece = lastMove.CapturedPiece;
-            Vector3 capturedOriginalPos = lastMove.CapturedPieceOriginalPosition;
-            BoardManager.Instance.AddPiece(ChessUtilities.BoardPosition(capturedOriginalPos), capturedPiece);
-            // Optionally, re-enable its collider or any components if they were disabled.
-            capturedPiece.gameObject.SetActive(true);
-            Destroy(lastMove.capturedPieceGo);
-           
-
-
-        }
-
-        // If this move was a castling move, revert the rook's movement as well.
-        if (lastMove.IsCastling)
-        {
-            PieceController rook = lastMove.CastlingRook;
-            Vector3 rookStart = lastMove.RookStartPosition;
-            Vector3 rookEnd = lastMove.RookEndPosition;
-
-            // Update the board state for the rook.
-            BoardManager.Instance.UpdatePiecePosition(rookEnd, rookStart, rook);
-            rook.transform.position = rookStart;
-        }
-
-        // Remove the move record from history.
-        moveHistory.RemoveAt(moveHistory.Count - 1);
-
-        // Switch the turn back to the previous player.
-        isWhiteTurn = !isWhiteTurn;
-
-        // Optionally, update your UI (captured pieces, move history list, etc.) here.
-        PieceController king = CheckController.GetKingFor(!movedPiece.isWhite);
-        if (king != null)
-            {
-               
-                if (king.GetComponent<CheckController>() != null)
-                {
-                     king.GetComponent<CheckController>().UpdateCheckIndicator();
-                }
-            }
-
-    // Optionally update UI here.
-    UpdateTurnUI();
-    Debug.Log("Undo successful.");
-    return true;
-    }
-   
-*/
     public bool IsMoveLegalConsideringCheck(PieceController movingPiece, Vector3 target)
 {
     // Save original board position of the moving piece.
@@ -314,9 +260,6 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     /// </summary>
     public void ReviewNextMove()
     { 
-
-     
-        Debug.Log("Reviewing move at " + currentReviewIndex);
         if (currentReviewIndex < moveHistory.Count - 1)
         {
             // currentReviewIndex+1 is the next move to reapply.

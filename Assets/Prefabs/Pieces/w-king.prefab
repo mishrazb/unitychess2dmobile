@@ -128,6 +128,7 @@ MonoBehaviour:
   highlightValidMoves: {fileID: 8959170116430859158, guid: 895496618117b7445808c9d8ac988d38, type: 3}
   validMoveIndicators: []
   isSelected: 0
+  cachedValidMoves: []
 --- !u!114 &6850452834346018365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,3 +142,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   checkIndicatorPrefab: {fileID: 4651510876976123272, guid: bb779a0e6f7b66942a8808a92f5a6464, type: 3}
+  kingPiece: {fileID: 0}
+  checkTextIndicatorPrefab: {fileID: 3377995989236866709, guid: 2bdbeb96f1c9ca14fae9e40eed1ca44e, type: 3}

@@ -199,17 +199,20 @@ public Vector3[] GetValidMovesForCheck()
         return moves.ToArray();
     }
 
-    private Vector3[] GetPawnMoves()
-    {
-        List<Vector3> moves = new List<Vector3>();
-        int direction = isWhite ? 1 : -1;
+    
+private Vector3[] GetPawnMoves()
+{
+    List<Vector3> moves = new List<Vector3>();
+    int direction = isWhite ? 1 : -1;
 
-        AddForwardMoves(moves, direction);
-        AddDiagonalCaptures(moves, direction);
-        AddEnPassantMoves(moves, direction);
+    AddForwardMoves(moves, direction);
+    AddDiagonalCaptures(moves, direction);
+    // Instead of handling en passant inline, delegate to the EnPassantHandler.
+    moves.AddRange(EnPassantHandler.GetEnPassantMoves(this));
 
-        return moves.ToArray();
-    }
+    return moves.ToArray();
+}
+
 
     private void AddForwardMoves(List<Vector3> moves, int direction)
     {
@@ -259,33 +262,6 @@ public Vector3[] GetValidMovesForCheck()
             }
         }
     }
-
-    private void AddEnPassantMoves(List<Vector3> moves, int direction)
-    {
-        if (GameManager.Instance.lastMovedPiece != null &&
-            GameManager.Instance.lastMovedPiece.selectedPieceType == pieceType.Pawn)
-        {
-            // Assume lastMoveStartPos is already standardized.
-            Vector3 lastMoveStart = GameManager.Instance.lastMoveStartPos;
-            Vector3 lastMoveEnd = ChessUtilities.BoardPosition(GameManager.Instance.lastMovedPiece.transform.position);
-            Vector3 currentPos = ChessUtilities.BoardPosition(transform.position);
-
-            // Check that the enemy pawn moved two squares, is on the same rank as this pawn,
-            // and is horizontally adjacent.
-            if (Mathf.Abs(lastMoveEnd.y - lastMoveStart.y) == 2 &&
-                lastMoveEnd.y == currentPos.y &&
-                Mathf.Abs(lastMoveEnd.x - currentPos.x) == 1)
-            {
-                Vector3 enPassantTarget = new Vector3(lastMoveEnd.x, currentPos.y + direction, currentPos.z);
-               // Debug.Log($"En Passant Move Detected for {name} at {enPassantTarget}");
-                if (!BoardManager.Instance.IsOccupied(enPassantTarget))
-                {
-                    moves.Add(enPassantTarget);
-                }
-            }
-        }
-    }
-
     private Vector3[] GetBishopMoves()
     {
         List<Vector3> moves = new List<Vector3>();

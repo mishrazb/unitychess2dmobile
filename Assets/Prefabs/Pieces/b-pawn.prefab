@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7209595485203746601}
   - component: {fileID: 22789245241073493}
   - component: {fileID: 2730432352464611649}
+  - component: {fileID: 6342212513416862760}
   - component: {fileID: 9050251091592282647}
   m_Layer: 6
   m_Name: b-pawn
@@ -129,6 +130,18 @@ MonoBehaviour:
   validMoveIndicators: []
   isSelected: 0
   cachedValidMoves: []
+--- !u!114 &6342212513416862760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2392785769638851534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bb302de338668f4c9e9121e4809b41d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &9050251091592282647
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   promotionUIPanel: {fileID: 6440457986872972320, guid: c5c2d2f6cad17114f8d0e0061b2c15d6, type: 3}
+  currentPromotionalUIPanel: {fileID: 0}
   whiteQueenPrefab: {fileID: 0}
   whiteRookPrefab: {fileID: 0}
   whiteKnightPrefab: {fileID: 0}
