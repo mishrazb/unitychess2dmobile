@@ -14,11 +14,14 @@ public class CheckController : MonoBehaviour
 
     // Optional: static instance for easy global access (if only one king of a given type is expected).
     public static CheckController Instance;
-
+        public GameObject checkTextIndicatorPrefab;
+    private GameObject checkTextIndicatorInstace;
+    
     void Awake()
     {
         // If you want a singleton instance (assuming one CheckController per king), assign it here.
         Instance = this;
+        
     }
 
     void Start()
@@ -63,7 +66,17 @@ public class CheckController : MonoBehaviour
         if (checkIndicatorInstance != null)
         {
             checkIndicatorInstance.SetActive(inCheck);
+            
+
+        } 
+        if (inCheck){
+                checkTextIndicatorInstace = Instantiate(checkTextIndicatorPrefab,Vector3.zero, Quaternion.identity);  
+                checkTextIndicatorInstace.transform.SetParent(GameObject.Find("TurnText").transform, false);
+        }else{
+            Destroy(checkTextIndicatorInstace);
         }
+        
+
     }
 
     /// <summary>
@@ -96,7 +109,6 @@ public class CheckController : MonoBehaviour
                 {
                     if (ChessUtilities.BoardPosition(move) == kingPos)
                     {
-                        Debug.Log("Checking check true");
                         return true;
                     }
                 }
