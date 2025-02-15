@@ -181,6 +181,11 @@ public class InputManager : MonoBehaviour
                     Destroy(capturedP.GetComponent<PieceController>());
                     Destroy(capturedP.GetComponent<BoxCollider>());
                     capturedP.SetActive(true);
+                    //capturedP.transform.Find("").SetActive(true);
+                    GameObject outlinePreviousMove = ChessUtilities.FindGameObjectInChildWithTag(capturedP,"Outline");
+                    if(outlinePreviousMove != null){
+                        Destroy(outlinePreviousMove);
+                    }
                 }
                 // only create move record for regular movement for castling, the move will be recorded by castlingHandler.
                 MoveRecord record = new MoveRecord()

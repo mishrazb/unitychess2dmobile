@@ -184,6 +184,7 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
         BoardManager.Instance.RemovePieceAt(target);
         // Temporarily disable its GameObject.
         capturedPiece.gameObject.SetActive(false);
+     
     }
     
     // 3. Place the moving piece at the target.

@@ -2731,7 +2731,7 @@ MonoBehaviour:
   isWhiteTurn: 1
   lastMovedPiece: {fileID: 0}
   lastMoveStartPos: {x: 0, y: 0, z: 0}
-  HighlightPreviousMoveTilePrefab: {fileID: 2620792197679613450, guid: 7ad9707ec7ef14445af961a388c228ca, type: 3}
+  HighlightPreviousMoveTilePrefab: {fileID: 7857838969236660914, guid: e819c998381cd0740a6b059364ac7069, type: 3}
   HighlightPreviousMovePiecePrefab: {fileID: 2620792197679613450, guid: 7ad9707ec7ef14445af961a388c228ca, type: 3}
   MaxUndoMoves: 10
   UndoMoveBtnText: {fileID: 1086051888}

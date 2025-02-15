@@ -21,4 +21,19 @@ public static class ChessUtilities
     {
         return pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8;
     }
+    public static GameObject FindGameObjectInChildWithTag (GameObject parent, string tag)
+	{
+		Transform t = parent.transform;
+
+		for (int i = 0; i < t.childCount; i++) 
+		{
+			if(t.GetChild(i).gameObject.tag == tag)
+			{
+				return t.GetChild(i).gameObject;
+			}
+				
+		}
+			
+		return null;
+	}
 }
