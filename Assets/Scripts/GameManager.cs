@@ -29,7 +29,7 @@ public class MoveRecord
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-
+    public GameObject AiManager;
     public bool isWhiteTurn = true;
 
     [Header("Previous Move")]
@@ -141,13 +141,16 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
    
     totalMoves++;
     MovesText.text= totalMoves.ToString();
-   
-    // If it's the AI's turn, automatically trigger the AI move.
-    // For instance, if human is white and AI is black, then isWhiteTurn == false means it's AI's turn.
-    if (!isWhiteTurn)
-    {
-        // Delay slightly if needed so the board updates visibly.
-        Invoke("MakeAIMove", 0.5f);
+    
+    // if ai manager is present
+    if(AiManager!=null){
+        // If it's the AI's turn, automatically trigger the AI move.
+        // For instance, if human is white and AI is black, then isWhiteTurn == false means it's AI's turn.
+        if (!isWhiteTurn)
+        {
+            // Delay slightly if needed so the board updates visibly.
+            Invoke("MakeAIMove", 0.5f);
+        }
     }
     
     }

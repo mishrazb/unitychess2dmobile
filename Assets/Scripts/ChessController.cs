@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class ChessController : MonoBehaviour
 {
-    public GameObject tilePrefab;
+    public GameObject tilePrefabWhite;
+        public GameObject tilePrefabBlack;
     public Color blackTileColor;
     public Color whiteTileColor;
     private GameObject[,] boardSquares = new GameObject[8, 8];  // 8x8 grid
@@ -19,7 +20,7 @@ public class ChessController : MonoBehaviour
 
     void CreateBoard()
     {
-        string tileColor;
+        string tileName;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
@@ -27,17 +28,17 @@ public class ChessController : MonoBehaviour
                 GameObject square;
                 if ((x + y) % 2 == 0)
                 {
-                     square = Instantiate(tilePrefab);
-                    square.GetComponent<SpriteRenderer>().color=blackTileColor;
-                     tileColor = "black_tile_";
+                     square = Instantiate(tilePrefabBlack);
+                  //  square.GetComponent<SpriteRenderer>().color=blackTileColor;
+                     tileName = "black_tile_";
                 }
                 else
                 {
-                    square = Instantiate(tilePrefab);
-                    square.GetComponent<SpriteRenderer>().color=whiteTileColor;
-                    tileColor = "white_tile_";
+                    square = Instantiate(tilePrefabWhite);
+                   // square.GetComponent<SpriteRenderer>().color=whiteTileColor;
+                    tileName = "white_tile_";
                 }
-                square.gameObject.name=tileColor+x+"_"+y;
+                square.gameObject.name=tileName+x+"_"+y;
                 square.transform.position = new Vector3(x, y, 0);
                 square.transform.SetParent(this.transform);
                 boardSquares[x, y] = square;

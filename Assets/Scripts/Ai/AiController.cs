@@ -20,15 +20,14 @@ public class AIController : MonoBehaviour
     // Called when it's the AI's turn.
     public void MakeMove()
     {
-        // Use the AIUtility to get all legal moves for the AI's color.
+        // Use AIUtility to get all legal moves for AI's color.
         List<MoveCandidate> candidates = AIUtility.GetAllLegalMoves(AiPlaysAsWhite);
         if (candidates.Count == 0)
         {
             Debug.Log("AI has no legal moves.");
             return;
         }
-        
-        // For low difficulty, pick a random move.
+
         MoveCandidate selectedCandidate;
         if (difficultyLevel <= 3)
         {
@@ -37,11 +36,9 @@ public class AIController : MonoBehaviour
         }
         else
         {
-            // For higher difficulty, use minimax search.
             selectedCandidate = SelectCandidate(candidates, difficultyLevel);
         }
         
-        // Execute the move using the GameManager's AI move method.
         gameManager.ExecuteAIMove(selectedCandidate.Piece, selectedCandidate.Target);
     }
 
@@ -61,17 +58,21 @@ public class AIController : MonoBehaviour
         return bestCandidate;
     }
 
-    // Uses minimax to evaluate the move.
-    private float EvaluateMove(MoveCandidate candidate, int difficultyLevel)
-    {
-        // Simulate candidate move.
-        MoveRecord record = AIUtility.MakeMove(candidate.Piece, candidate.Target);
-        // Use minimax search with a depth based on difficulty.
-        // Depth could be set, for example, to difficultyLevel (or a function thereof).
-        float score = AIUtility.Minimax(difficultyLevel, float.NegativeInfinity, float.PositiveInfinity, false, AiPlaysAsWhite);
-        AIUtility.UndoMove(record);
-        return score;
-    }
+   private float EvaluateMove(MoveCandidate candidate, int difficultyLevel)
+{
+    // Record the start time for this minimax search.
+    float startTime = Time.realtimeSinceStartup;
+
+    // Simulate candidate move.
+    MoveRecord record = AIUtility.MakeMove(candidate.Piece, candidate.Target);
+    // Use minimax search with a depth based on difficulty, passing startTime.
+    float score = AIUtility.Minimax(difficultyLevel, float.NegativeInfinity, float.PositiveInfinity, false, AiPlaysAsWhite, startTime);
+    AIUtility.UndoMove(record);
+    return score;
+}
+
+
+    
 }
 
 public class MoveCandidate

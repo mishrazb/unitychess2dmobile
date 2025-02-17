@@ -4,17 +4,18 @@ using System.Linq;
 
 public static class AIUtility
 {
+     private const float TIME_LIMIT = 0.01f;
+
     /// <summary>
     /// Iterates over all pieces on the board for the given color and returns all legal moves
-    /// as a list of MoveCandidate objects. This uses the GetValidMovesForCheck() method on each piece
-    /// (which computes the full set of moves regardless of selection) and filters them with
-    /// IsMoveLegalConsideringCheck.
+    /// as a list of MoveCandidate objects. This uses GetValidMovesForCheck() on each piece.
     /// </summary>
     public static List<MoveCandidate> GetAllLegalMoves(bool forWhite)
     {
         List<MoveCandidate> legalMoves = new List<MoveCandidate>();
-        // Copy to avoid modification during enumeration.
-        List<KeyValuePair<Vector3, PieceController>> occupiedCopy =
+        
+        // Copy the occupied positions to avoid modification during iteration.
+        List<KeyValuePair<Vector3, PieceController>> occupiedCopy = 
             new List<KeyValuePair<Vector3, PieceController>>(BoardManager.Instance.GetOccupiedPositions());
         
         foreach (KeyValuePair<Vector3, PieceController> kvp in occupiedCopy)
@@ -22,6 +23,7 @@ public static class AIUtility
             PieceController piece = kvp.Value;
             if (piece.isWhite == forWhite)
             {
+                // Use the version that computes moves regardless of selection.
                 Vector3[] moves = piece.GetValidMovesForCheck();
                 foreach (Vector3 move in moves)
                 {
@@ -86,8 +88,7 @@ public static class AIUtility
 
     /// <summary>
     /// Simulates making a move on the board.
-    /// It moves the given piece from its current position to target, handles capturing if needed,
-    /// and returns a MoveRecord describing the move (to later be used for undo).
+    /// Returns a MoveRecord for later undo.
     /// </summary>
     public static MoveRecord MakeMove(PieceController piece, Vector3 target)
     {
@@ -139,11 +140,11 @@ public static class AIUtility
             record.CapturedPiece.transform.position = record.CapturedPieceOriginalPosition;
             record.CapturedPiece.gameObject.SetActive(true);
         }
-        // Add castling undo if needed.
+        // Handle castling moves if necessary.
     }
 
     /// <summary>
-    /// Checks if the game is over (e.g., if one king is missing).
+    /// Checks if the game is over (e.g., if a king is missing).
     /// </summary>
     public static bool IsGameOver()
     {
@@ -153,18 +154,24 @@ public static class AIUtility
     }
 
     /// <summary>
-    /// MINIMAX WITH ALPHA-BETA PRUNING.
-    /// Searches for the best move given a depth, returning a numeric evaluation.
+    /// MINIMAX with ALPHA-BETA PRUNING and timeout check.
+    /// Returns an evaluation of the board.
     /// </summary>
-    public static float Minimax(int depth, float alpha, float beta, bool maximizingPlayer, bool forWhite)
+    public static float Minimax(int depth, float alpha, float beta, bool maximizingPlayer, bool forWhite, float startTime)
     {
+        // Timeout check: if we exceeded the time limit, return a static evaluation.
+        if (Time.realtimeSinceStartup - startTime > TIME_LIMIT)
+        {
+            return EvaluateBoard();
+        }
+
         if (depth == 0 || IsGameOver())
         {
-            return QuiescenceSearch(alpha, beta, forWhite);
+            return QuiescenceSearch(alpha, beta, forWhite, 4, startTime);
         }
 
         List<MoveCandidate> moves = GetAllLegalMoves(forWhite);
-        // Optionally sort moves for better pruning (e.g., captures first) – not implemented here.
+        // Optionally sort moves for better pruning.
 
         if (maximizingPlayer)
         {
@@ -172,7 +179,7 @@ public static class AIUtility
             foreach (MoveCandidate move in moves)
             {
                 MoveRecord record = MakeMove(move.Piece, move.Target);
-                float eval = Minimax(depth - 1, alpha, beta, false, forWhite);
+                float eval = Minimax(depth - 1, alpha, beta, false, forWhite, startTime);
                 UndoMove(record);
                 maxEval = Mathf.Max(maxEval, eval);
                 alpha = Mathf.Max(alpha, eval);
@@ -187,7 +194,7 @@ public static class AIUtility
             foreach (MoveCandidate move in moves)
             {
                 MoveRecord record = MakeMove(move.Piece, move.Target);
-                float eval = Minimax(depth - 1, alpha, beta, true, forWhite);
+                float eval = Minimax(depth - 1, alpha, beta, true, forWhite, startTime);
                 UndoMove(record);
                 minEval = Mathf.Min(minEval, eval);
                 beta = Mathf.Min(beta, eval);
@@ -199,10 +206,13 @@ public static class AIUtility
     }
 
     /// <summary>
-    /// A simple quiescence search that extends capture moves until the position is quiet.
+    /// Quiescence search with timeout handling.
     /// </summary>
-    public static float QuiescenceSearch(float alpha, float beta, bool forWhite)
+    public static float QuiescenceSearch(float alpha, float beta, bool forWhite, int maxQDepth, float startTime)
     {
+        if (maxQDepth <= 0 || (Time.realtimeSinceStartup - startTime > TIME_LIMIT))
+            return EvaluateBoard();
+            
         float standPat = EvaluateBoard();
         if (standPat >= beta)
             return beta;
@@ -213,7 +223,7 @@ public static class AIUtility
         foreach (MoveCandidate move in captureMoves)
         {
             MoveRecord record = MakeMove(move.Piece, move.Target);
-            float score = -QuiescenceSearch(-beta, -alpha, forWhite);
+            float score = -QuiescenceSearch(-beta, -alpha, forWhite, maxQDepth - 1, startTime);
             UndoMove(record);
             if (score >= beta)
                 return beta;
