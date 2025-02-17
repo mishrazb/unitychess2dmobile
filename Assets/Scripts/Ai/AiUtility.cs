@@ -10,34 +10,53 @@ public static class AIUtility
     /// (which computes the full set of moves regardless of selection) and filters them with
     /// IsMoveLegalConsideringCheck.
     /// </summary>
-   public static List<MoveCandidate> GetAllLegalMoves(bool forWhite)
-{
-    List<MoveCandidate> legalMoves = new List<MoveCandidate>();
-    
-    // Make a copy of the occupied positions to avoid modification during enumeration.
-    List<KeyValuePair<Vector3, PieceController>> occupiedCopy = 
-        new List<KeyValuePair<Vector3, PieceController>>(BoardManager.Instance.GetOccupiedPositions());
-    
-    foreach (KeyValuePair<Vector3, PieceController> kvp in occupiedCopy)
+    public static List<MoveCandidate> GetAllLegalMoves(bool forWhite)
     {
-        PieceController piece = kvp.Value;
-        if (piece.isWhite == forWhite)
+        List<MoveCandidate> legalMoves = new List<MoveCandidate>();
+        // Copy to avoid modification during enumeration.
+        List<KeyValuePair<Vector3, PieceController>> occupiedCopy =
+            new List<KeyValuePair<Vector3, PieceController>>(BoardManager.Instance.GetOccupiedPositions());
+        
+        foreach (KeyValuePair<Vector3, PieceController> kvp in occupiedCopy)
         {
-            Vector3[] moves = piece.GetValidMovesForCheck();
-            foreach (Vector3 move in moves)
+            PieceController piece = kvp.Value;
+            if (piece.isWhite == forWhite)
             {
-                if (GameManager.Instance.IsMoveLegalConsideringCheck(piece, move))
+                Vector3[] moves = piece.GetValidMovesForCheck();
+                foreach (Vector3 move in moves)
                 {
-                    legalMoves.Add(new MoveCandidate(piece, move));
+                    if (GameManager.Instance.IsMoveLegalConsideringCheck(piece, move))
+                    {
+                        legalMoves.Add(new MoveCandidate(piece, move));
+                    }
                 }
             }
         }
+        return legalMoves;
     }
-    return legalMoves;
-}
 
     /// <summary>
-    /// Evaluates the board state with a simple material count. Positive values favor White; negative favor Black.
+    /// Returns only capture moves from all legal moves.
+    /// </summary>
+    public static List<MoveCandidate> GetCaptureMoves(bool forWhite)
+    {
+        List<MoveCandidate> captures = new List<MoveCandidate>();
+        List<MoveCandidate> allMoves = GetAllLegalMoves(forWhite);
+        foreach (MoveCandidate candidate in allMoves)
+        {
+            if (BoardManager.Instance.IsOccupied(candidate.Target))
+            {
+                PieceController targetPiece = BoardManager.Instance.GetPieceAt(candidate.Target);
+                if (targetPiece != null && targetPiece.isWhite != forWhite)
+                    captures.Add(candidate);
+            }
+        }
+        return captures;
+    }
+
+    /// <summary>
+    /// Evaluates the board state using a simple material count.
+    /// Positive values favor White; negative values favor Black.
     /// </summary>
     public static float EvaluateBoard()
     {
@@ -76,13 +95,12 @@ public static class AIUtility
         Vector3 originalPos = ChessUtilities.BoardPosition(piece.transform.position);
         PieceController capturedPiece = null;
 
-        // Check if there's an enemy piece at the target.
         if (BoardManager.Instance.IsOccupied(target))
         {
             capturedPiece = BoardManager.Instance.GetPieceAt(target);
         }
         
-        // Simulate the move.
+        // Simulate move.
         BoardManager.Instance.RemovePieceAt(originalPos);
         if (capturedPiece != null)
         {
@@ -108,34 +126,100 @@ public static class AIUtility
 
     /// <summary>
     /// Undoes a move based on the provided MoveRecord.
-    /// Moves the moved piece back to its original position and restores any captured piece.
     /// </summary>
     public static void UndoMove(MoveRecord record)
     {
-        // Revert the moved piece.
         BoardManager.Instance.RemovePieceAt(record.EndPosition);
         BoardManager.Instance.AddPiece(record.StartPosition, record.MovedPiece);
         record.MovedPiece.transform.position = record.StartPosition;
 
-        // Restore captured piece, if any.
         if (record.CapturedPiece != null)
         {
             BoardManager.Instance.AddPiece(record.CapturedPieceOriginalPosition, record.CapturedPiece);
             record.CapturedPiece.transform.position = record.CapturedPieceOriginalPosition;
             record.CapturedPiece.gameObject.SetActive(true);
         }
-
-        // Handle castling moves here if needed.
+        // Add castling undo if needed.
     }
 
     /// <summary>
-    /// Checks if the game is over based on a simple condition: if either king is missing.
-    /// You might expand this to include checkmate or stalemate conditions.
+    /// Checks if the game is over (e.g., if one king is missing).
     /// </summary>
     public static bool IsGameOver()
     {
         PieceController whiteKing = CheckController.GetKingFor(true);
         PieceController blackKing = CheckController.GetKingFor(false);
         return whiteKing == null || blackKing == null;
+    }
+
+    /// <summary>
+    /// MINIMAX WITH ALPHA-BETA PRUNING.
+    /// Searches for the best move given a depth, returning a numeric evaluation.
+    /// </summary>
+    public static float Minimax(int depth, float alpha, float beta, bool maximizingPlayer, bool forWhite)
+    {
+        if (depth == 0 || IsGameOver())
+        {
+            return QuiescenceSearch(alpha, beta, forWhite);
+        }
+
+        List<MoveCandidate> moves = GetAllLegalMoves(forWhite);
+        // Optionally sort moves for better pruning (e.g., captures first) – not implemented here.
+
+        if (maximizingPlayer)
+        {
+            float maxEval = float.NegativeInfinity;
+            foreach (MoveCandidate move in moves)
+            {
+                MoveRecord record = MakeMove(move.Piece, move.Target);
+                float eval = Minimax(depth - 1, alpha, beta, false, forWhite);
+                UndoMove(record);
+                maxEval = Mathf.Max(maxEval, eval);
+                alpha = Mathf.Max(alpha, eval);
+                if (beta <= alpha)
+                    break;
+            }
+            return maxEval;
+        }
+        else
+        {
+            float minEval = float.PositiveInfinity;
+            foreach (MoveCandidate move in moves)
+            {
+                MoveRecord record = MakeMove(move.Piece, move.Target);
+                float eval = Minimax(depth - 1, alpha, beta, true, forWhite);
+                UndoMove(record);
+                minEval = Mathf.Min(minEval, eval);
+                beta = Mathf.Min(beta, eval);
+                if (beta <= alpha)
+                    break;
+            }
+            return minEval;
+        }
+    }
+
+    /// <summary>
+    /// A simple quiescence search that extends capture moves until the position is quiet.
+    /// </summary>
+    public static float QuiescenceSearch(float alpha, float beta, bool forWhite)
+    {
+        float standPat = EvaluateBoard();
+        if (standPat >= beta)
+            return beta;
+        if (alpha < standPat)
+            alpha = standPat;
+
+        List<MoveCandidate> captureMoves = GetCaptureMoves(forWhite);
+        foreach (MoveCandidate move in captureMoves)
+        {
+            MoveRecord record = MakeMove(move.Piece, move.Target);
+            float score = -QuiescenceSearch(-beta, -alpha, forWhite);
+            UndoMove(record);
+            if (score >= beta)
+                return beta;
+            if (score > alpha)
+                alpha = score;
+        }
+        return alpha;
     }
 }

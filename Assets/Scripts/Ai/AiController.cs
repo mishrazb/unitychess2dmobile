@@ -22,52 +22,55 @@ public class AIController : MonoBehaviour
     {
         // Use the AIUtility to get all legal moves for the AI's color.
         List<MoveCandidate> candidates = AIUtility.GetAllLegalMoves(AiPlaysAsWhite);
-
         if (candidates.Count == 0)
         {
             Debug.Log("AI has no legal moves.");
             return;
         }
-
-        // Select a candidate move based on difficulty.
-        MoveCandidate selectedCandidate = SelectCandidate(candidates, difficultyLevel);
-
+        
+        // For low difficulty, pick a random move.
+        MoveCandidate selectedCandidate;
+        if (difficultyLevel <= 3)
+        {
+            int index = Random.Range(0, candidates.Count);
+            selectedCandidate = candidates[index];
+        }
+        else
+        {
+            // For higher difficulty, use minimax search.
+            selectedCandidate = SelectCandidate(candidates, difficultyLevel);
+        }
+        
         // Execute the move using the GameManager's AI move method.
         gameManager.ExecuteAIMove(selectedCandidate.Piece, selectedCandidate.Target);
     }
 
-    // Selects a candidate move. For low difficulty levels, pick a random move;
-    // for higher difficulty, evaluate moves (you can expand this with a minimax search later).
     private MoveCandidate SelectCandidate(List<MoveCandidate> candidates, int difficultyLevel)
     {
-        if (difficultyLevel <= 3)
+        MoveCandidate bestCandidate = null;
+        float bestScore = float.NegativeInfinity;
+        foreach (MoveCandidate candidate in candidates)
         {
-            int index = Random.Range(0, candidates.Count);
-            return candidates[index];
-        }
-        else
-        {
-            MoveCandidate bestCandidate = null;
-            float bestScore = float.NegativeInfinity;
-            foreach (MoveCandidate candidate in candidates)
+            float score = EvaluateMove(candidate, difficultyLevel);
+            if (score > bestScore)
             {
-                float score = EvaluateMove(candidate, difficultyLevel);
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestCandidate = candidate;
-                }
+                bestScore = score;
+                bestCandidate = candidate;
             }
-            return bestCandidate;
         }
+        return bestCandidate;
     }
 
-    // A simple evaluation function that scores moves.
-    // This is a placeholder; you could later replace it with a minimax evaluation.
+    // Uses minimax to evaluate the move.
     private float EvaluateMove(MoveCandidate candidate, int difficultyLevel)
     {
-        float baseScore = Random.Range(0f, 10f);
-        return baseScore + difficultyLevel * 0.5f;
+        // Simulate candidate move.
+        MoveRecord record = AIUtility.MakeMove(candidate.Piece, candidate.Target);
+        // Use minimax search with a depth based on difficulty.
+        // Depth could be set, for example, to difficultyLevel (or a function thereof).
+        float score = AIUtility.Minimax(difficultyLevel, float.NegativeInfinity, float.PositiveInfinity, false, AiPlaysAsWhite);
+        AIUtility.UndoMove(record);
+        return score;
     }
 }
 
