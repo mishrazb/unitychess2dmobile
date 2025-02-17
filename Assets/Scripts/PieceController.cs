@@ -96,12 +96,22 @@ public class PieceController : MonoBehaviour
             // Ensure the z coordinate matches the board standard.
             Vector3 mmove = move;
             mmove.z = ChessUtilities.BoardPosition(transform.position).z;
+          
 
             if (IsValidMove(mmove) && GameManager.Instance.IsMoveLegalConsideringCheck(this, mmove)  )
             {
+                mmove.z = -2;
                 GameObject validMove = Instantiate(highlightValidMoves, mmove, Quaternion.identity);
                 validMove.transform.position = mmove;
                 validMove.transform.SetParent(transform);
+
+                if(BoardManager.Instance.GetPieceAt(mmove)!=null){
+                    validMove.GetComponent<SpriteRenderer>().color = Color.red;
+                }else{
+                    validMove.GetComponent<SpriteRenderer>().color = Color.green;
+                }
+
+
                 validMove.tag = "ValidMove";
                 validMoveIndicators.Add(validMove);
             }
