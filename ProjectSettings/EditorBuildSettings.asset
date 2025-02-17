@@ -8,5 +8,14 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/HumanVrsAI.unity
+    guid: 64ddcf95a89ee6b418e4ba3b43938e84
+  - enabled: 1
+    path: Assets/Scenes/GameStart.unity
+    guid: 0403a408762497a478110d0237170700
+  - enabled: 1
+    path: Assets/Scenes/HumanVrsHuman.unity
+    guid: 83eadf2becedca24ca86ab171a94428b
   m_configObjects:
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: 9fe7cb1a6a00ca1458c7caaa41639858, type: 2}

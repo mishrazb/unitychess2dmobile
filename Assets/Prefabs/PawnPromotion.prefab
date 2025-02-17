@@ -420,7 +420,7 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 250, y: 250}
+  m_CellSize: {x: 252.34, y: 250}
   m_Spacing: {x: 0, y: 0}
   m_Constraint: 2
   m_ConstraintCount: 1
@@ -622,8 +622,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 44.318176, y: 175.49988}
+  m_SizeDelta: {x: 677.1814, y: 350.9998}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &478965130592416223
 CanvasRenderer:
@@ -646,14 +646,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.254717, g: 0.254717, b: 0.254717, a: 0.85490197}
+  m_Color: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 8415ff2bb7f971c45a9969f93abf31f2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -679,14 +679,14 @@ MonoBehaviour:
   rookButton: {fileID: 7180004703211580085}
   knightButton: {fileID: 8967443381133517698}
   bishopButton: {fileID: 6691543317177005114}
-  whiteQueenSprite: {fileID: 21300000, guid: 88ca24d72abb6354f9d5cf8416bbb9b5, type: 3}
-  whiteRookSprite: {fileID: 21300000, guid: e8ba822fa4501a84b83be1ba31bf333a, type: 3}
-  whiteKnightSprite: {fileID: 21300000, guid: 2f9426ef8e3c5d84c9cf4c480326147a, type: 3}
-  whiteBishopSprite: {fileID: 21300000, guid: 93f08ccc074e9f1438d2e107be5bb4d7, type: 3}
-  blackQueenSprite: {fileID: 21300000, guid: 047846afb437c32479b8112b1a48357e, type: 3}
-  blackRookSprite: {fileID: 21300000, guid: e58b1ea866473e74cb50292732843abc, type: 3}
-  blackKnightSprite: {fileID: 21300000, guid: 588f360892e37bb438d9ca3399b6b263, type: 3}
-  blackBishopSprite: {fileID: 21300000, guid: 72b5d61d4ad554146aa3f73494336950, type: 3}
+  whiteQueenSprite: {fileID: 21300000, guid: 5024efbdfe7f32d43aaec5a743f6b105, type: 3}
+  whiteRookSprite: {fileID: 21300000, guid: 0264c3699328fc840a6af36c9905582e, type: 3}
+  whiteKnightSprite: {fileID: 21300000, guid: cc3b7060e9290eb45b80f942f365489a, type: 3}
+  whiteBishopSprite: {fileID: 21300000, guid: 13fed37fe6832204daae74b3657b8d78, type: 3}
+  blackQueenSprite: {fileID: 21300000, guid: 1038242b94d153c4c83a6f1b4bfe5808, type: 3}
+  blackRookSprite: {fileID: 21300000, guid: 943e01faf7c10ac4b95fd91c3da61c5d, type: 3}
+  blackKnightSprite: {fileID: 21300000, guid: 9c1ac231ded367c439627614c044773f, type: 3}
+  blackBishopSprite: {fileID: 21300000, guid: 75f32b71b2377684eb095fdbd6068f17, type: 3}
   currentPromotionHandler: {fileID: 0}
 --- !u!1 &9072680495992233597
 GameObject:

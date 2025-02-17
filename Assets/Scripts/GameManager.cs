@@ -82,6 +82,9 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     }
     private void HighightPreviousMove(Vector3 start, PieceController lastpiece)
     {   
+
+        bool isWhite = lastpiece.isWhite;
+        Debug.Log("HIGHLLIGHT LAST MOVE is WHITE " + isWhite );
        //first check if a previous tile and piece highlight exists if it does, clear it before recrating it on the new piece and tile.
         if(highlightPreviousMovePieceInstance!=null){
             Destroy(highlightPreviousMovePieceInstance);
@@ -139,9 +142,66 @@ public List<MoveRecord> moveHistory = new List<MoveRecord>();
     totalMoves++;
     MovesText.text= totalMoves.ToString();
    
+    // If it's the AI's turn, automatically trigger the AI move.
+    // For instance, if human is white and AI is black, then isWhiteTurn == false means it's AI's turn.
+    if (!isWhiteTurn)
+    {
+        // Delay slightly if needed so the board updates visibly.
+        Invoke("MakeAIMove", 0.5f);
+    }
     
     }
-   
+    private void MakeAIMove()
+{
+    // Assuming you have an AIController assigned to play as black.
+    AIController.Instance.MakeMove();
+}
+   public void ExecuteAIMove(PieceController piece, Vector3 target)
+{
+    // Standardize the target position.
+    target = ChessUtilities.BoardPosition(target);
+    
+    // Save the starting position of the piece.
+    Vector3 startingPos = ChessUtilities.BoardPosition(piece.transform.position);
+    
+    // Handle capture if a piece occupies the target square.
+    PieceController capturedPiece = null;
+    if (BoardManager.Instance.IsOccupied(target))
+    {
+        capturedPiece = BoardManager.Instance.GetPieceAt(target);
+        // Remove the captured piece from board state and disable it.
+        BoardManager.Instance.RemovePieceAt(target);
+        capturedPiece.gameObject.SetActive(false);
+    }
+    
+    // Move the piece via the BoardManager's API.
+    BoardManager.Instance.MovePiece(piece, target);
+    piece.transform.position = target; // ensure transform is updated
+    
+    // Create a new move record.
+    MoveRecord record = new MoveRecord()
+    {
+        MovedPiece = piece,
+        StartPosition = startingPos,
+        EndPosition = target,
+        CapturedPiece = capturedPiece,
+        CapturedPieceOriginalPosition = capturedPiece != null ? ChessUtilities.BoardPosition(capturedPiece.transform.position) : Vector3.zero,
+        IsCastling = false,       // Not a castling move.
+        CastlingRook = null,        // Not applicable.
+        capturedPieceGo = null      // Not using a captured visual here, or handle as needed.
+    };
+    
+    // Add the move record to the move history.
+    AddMoveRecord(record);
+    
+    // Update last move references for en passant, etc.
+    lastMovedPiece = piece;
+    lastMoveStartPos = startingPos;
+    
+    // End turn (this will toggle the turn, fire events, and check for game over).
+    EndTurn();
+    HighlightLastMove(startingPos, piece);
+}
     public bool IsCurrentPlayerTurn(bool isWhite)
     {
 

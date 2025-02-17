@@ -27,15 +27,15 @@ public class ChessController : MonoBehaviour
                 GameObject square;
                 if ((x + y) % 2 == 0)
                 {
-                    square = Instantiate(tilePrefab);
-                    square.GetComponent<SpriteRenderer>().color=whiteTileColor;
-                    tileColor = "white_tile_";
+                     square = Instantiate(tilePrefab);
+                    square.GetComponent<SpriteRenderer>().color=blackTileColor;
+                     tileColor = "black_tile_";
                 }
                 else
                 {
                     square = Instantiate(tilePrefab);
-                    square.GetComponent<SpriteRenderer>().color=blackTileColor;
-                     tileColor = "black_tile_";
+                    square.GetComponent<SpriteRenderer>().color=whiteTileColor;
+                    tileColor = "white_tile_";
                 }
                 square.gameObject.name=tileColor+x+"_"+y;
                 square.transform.position = new Vector3(x, y, 0);
