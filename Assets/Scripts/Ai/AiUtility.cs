@@ -10,29 +10,31 @@ public static class AIUtility
     /// (which computes the full set of moves regardless of selection) and filters them with
     /// IsMoveLegalConsideringCheck.
     /// </summary>
-    public static List<MoveCandidate> GetAllLegalMoves(bool forWhite)
+   public static List<MoveCandidate> GetAllLegalMoves(bool forWhite)
+{
+    List<MoveCandidate> legalMoves = new List<MoveCandidate>();
+    
+    // Make a copy of the occupied positions to avoid modification during enumeration.
+    List<KeyValuePair<Vector3, PieceController>> occupiedCopy = 
+        new List<KeyValuePair<Vector3, PieceController>>(BoardManager.Instance.GetOccupiedPositions());
+    
+    foreach (KeyValuePair<Vector3, PieceController> kvp in occupiedCopy)
     {
-        List<MoveCandidate> legalMoves = new List<MoveCandidate>();
-
-        // Iterate over all pieces on the board.
-        foreach (KeyValuePair<Vector3, PieceController> kvp in BoardManager.Instance.GetOccupiedPositions())
+        PieceController piece = kvp.Value;
+        if (piece.isWhite == forWhite)
         {
-            PieceController piece = kvp.Value;
-            if (piece.isWhite == forWhite)
+            Vector3[] moves = piece.GetValidMovesForCheck();
+            foreach (Vector3 move in moves)
             {
-                // Use the version that computes moves for check detection.
-                Vector3[] moves = piece.GetValidMovesForCheck();
-                foreach (Vector3 move in moves)
+                if (GameManager.Instance.IsMoveLegalConsideringCheck(piece, move))
                 {
-                    if (GameManager.Instance.IsMoveLegalConsideringCheck(piece, move))
-                    {
-                        legalMoves.Add(new MoveCandidate(piece, move));
-                    }
+                    legalMoves.Add(new MoveCandidate(piece, move));
                 }
             }
         }
-        return legalMoves;
     }
+    return legalMoves;
+}
 
     /// <summary>
     /// Evaluates the board state with a simple material count. Positive values favor White; negative favor Black.
